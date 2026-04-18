@@ -1957,7 +1957,7 @@
     <div class="edit-body">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
         <input type="text" id="edit-title" placeholder="Title..." maxlength="120" style="flex:1;" />
-        <div style="display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden;flex-shrink:0;">
+        <div id="edit-type-toggle" style="display:flex;border:1px solid var(--border2);border-radius:6px;overflow:hidden;flex-shrink:0;">
           <button class="type-btn active" data-type="lit" data-group="edit" style="padding:3px 10px;font-size:11px;font-weight:700;font-family:var(--font);background:var(--blue-bg);color:var(--blue);border:none;cursor:pointer;letter-spacing:0.04em;">LIT</button>
           <button class="type-btn" data-type="src" data-group="edit" style="padding:3px 10px;font-size:11px;font-weight:700;font-family:var(--font);background:transparent;color:var(--text3);border:none;cursor:pointer;letter-spacing:0.04em;">SRC</button>
         </div>
@@ -2700,7 +2700,7 @@ function openEdit() {
   document.getElementById('edit-title').value = activeNote.title || '';
   document.getElementById('edit-body').value  = activeNote.body  || '';
   editNoteType = activeNote.type || 'lit';
-  setTypeToggle('[data-group="edit"]', editNoteType);
+  setTypeToggle('#edit-type-toggle', editNoteType);
   document.getElementById('view-modal').style.display = 'none';
   document.getElementById('edit-modal').classList.add('open');
 }
@@ -3600,7 +3600,7 @@ function setTypeToggle(containerSelector, type) {
 
 initTypeToggle('#composer-type-toggle', t => { composerType = t; });
 initTypeToggle('[data-group="new-note"]', t => { newNoteType = t; });
-initTypeToggle('[data-group="edit"]',     t => { editNoteType = t; });
+initTypeToggle('#edit-type-toggle',        t => { editNoteType = t; });
 
 /* ── File System API ── */
 const FS_STORE = 'zettel-fs';
