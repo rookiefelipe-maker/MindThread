@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#000000" />
 <link rel="manifest" href="./manifest.json" />
-<title>Zettel v26 — Natural date search</title>
+<title>Zettel v28 — Clickable links</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -721,6 +721,15 @@
     transition: opacity 0.12s;
   }
   .md-render .wikilink:hover { opacity: 0.7; }
+
+  .md-render .md-link {
+    color: var(--blue);
+    text-decoration: none;
+    border-bottom: 1px solid var(--blue-border);
+    transition: opacity 0.12s;
+    word-break: break-all;
+  }
+  .md-render .md-link:hover { opacity: 0.7; }
 
   /* checkbox in rendered md */
   .md-render .md-task {
@@ -2417,7 +2426,8 @@ function renderMarkdown(raw) {
       .replace(/\*([^*]+)\*/g, '<em>$1</em>')
       // code `text`
       .replace(/`([^`]+)`/g, '<code>$1</code>')
-      // escape remaining HTML
+      // URLs
+      .replace(/(https?:\/\/[^\s<>"']+)/g, '<a class="md-link" href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
       ;
   }
 
