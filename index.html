@@ -2695,11 +2695,14 @@ function closeModal() {
 let editFromThread = false;
 let editFromThreadNote = null;
 
+let editOriginalType = 'lit'; // track original type before edit
+
 function openEdit() {
   if (!activeNote) return;
   document.getElementById('edit-title').value = activeNote.title || '';
   document.getElementById('edit-body').value  = activeNote.body  || '';
   editNoteType = activeNote.type || 'lit';
+  editOriginalType = editNoteType;
   setTypeToggle('#edit-type-toggle', editNoteType);
   document.getElementById('view-modal').style.display = 'none';
   document.getElementById('edit-modal').classList.add('open');
@@ -2746,9 +2749,15 @@ document.getElementById('btn-save-edit').addEventListener('click', async () => {
   if (!activeNote) return;
   const body = document.getElementById('edit-body').value.trim();
   if (!body) return;
+  const prevType = activeNote.type || 'lit';
   activeNote.title = document.getElementById('edit-title').value.trim();
   activeNote.body  = body;
   activeNote.type  = activeNote.parentId ? 'thread' : editNoteType;
+  // if type changed, delete file from old folder first
+  if (!activeNote.parentId && prevType !== editNoteType) {
+    const noteWithOldType = { ...activeNote, type: prevType };
+    await deleteNoteFromVault(noteWithOldType);
+  }
   await putNote(activeNote);
   await writeNoteToVault(activeNote);
   allNotes = await getAllNotes();
