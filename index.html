@@ -4,12 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#1a84d4" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="MindThread" />
 <link rel="manifest" href="./manifest.json" />
-<link rel="apple-touch-icon" href="./icons/icon-192.png" />
-<title>MindThread v26</title>
+<title>Zettel v26 — Natural date search</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1716,14 +1712,7 @@
   <!-- sidebar pegado al borde izquierdo -->
   <div id="sidebar">
     <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="app-logo" style="display:flex;align-items:center;gap:8px;">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="1.5" y="1.5" width="19" height="5.5" rx="2" stroke="var(--text1)" stroke-width="1.6"/>
-          <rect x="1.5" y="8.25" width="19" height="5.5" rx="2" stroke="var(--text1)" stroke-width="1.6"/>
-          <rect x="1.5" y="15" width="19" height="5.5" rx="2" stroke="var(--text1)" stroke-width="1.6"/>
-        </svg>
-        MindThread
-      </div>
+      <div class="app-logo">zettel</div>
       <button id="btn-settings" title="Settings" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:25px;padding:4px;border-radius:6px;transition:color 0.15s;">⚙</button>
     </div>
 
@@ -4157,10 +4146,9 @@ openDB().then(async () => {
 
 window.addEventListener('resize', updatePinnedTop);
 
-/* ── Service Worker registration ── */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW error:', err));
   });
 }
 </script>
