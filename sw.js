@@ -1,9 +1,9 @@
-const CACHE_NAME = 'mindthread-v26';
+const CACHE_NAME = 'mindthread-v27';
 const ASSETS = [
   './index.html',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './icon-192.png',
+  './icon-512.png',
 ];
 
 self.addEventListener('install', e => {
