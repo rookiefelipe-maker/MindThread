@@ -74,49 +74,13 @@
     font-size: var(--sidebar-fs);
   }
 
-  body.sidebar-hidden #sidebar {
-    transform: translateX(calc(-1 * var(--sidebar-w)));
-  }
 
-  body.sidebar-hidden #main {
-    margin-left: 0;
-  }
 
   #main {
     transition: margin-left 0.22s cubic-bezier(0.4,0,0.2,1);
   }
 
-  /* ── sidebar toggle tab ── */
-  #sidebar-toggle {
-    position: fixed;
-    top: 50%;
-    left: var(--sidebar-w);
-    transform: translateY(-50%);
-    z-index: 500;
-    width: 18px;
-    height: 44px;
-    background: var(--bg3);
-    border: 1px solid var(--border2);
-    border-left: none;
-    border-radius: 0 8px 8px 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text3);
-    font-size: 10px;
-    transition: left 0.22s cubic-bezier(0.4,0,0.2,1), color 0.15s, background 0.15s, opacity 0.15s;
-    line-height: 1;
-  }
-  #sidebar-toggle:hover { color: var(--text1); background: var(--bg4); }
-  #sidebar-toggle.hidden { opacity: 0; pointer-events: none; }
 
-  body.sidebar-hidden #sidebar-toggle {
-    left: 0;
-    border-left: 1px solid var(--border2);
-    border-right: none;
-    border-radius: 8px 0 0 8px;
-  }
 
   .app-logo {
     font-size: 18px;
@@ -1717,8 +1681,6 @@
 
 <div id="layout">
 
-  <!-- sidebar toggle tab -->
-  <button id="sidebar-toggle" title="Toggle sidebar">‹</button>
 
   <!-- sidebar pegado al borde izquierdo -->
   <div id="sidebar">
@@ -2661,12 +2623,10 @@ function openView(note) {
   document.getElementById('view-modal').style.display = 'flex';
   document.getElementById('edit-modal').classList.remove('open');
   document.getElementById('modal-overlay').classList.add('open');
-  document.getElementById('sidebar-toggle').classList.add('hidden');
 }
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
-  document.getElementById('sidebar-toggle').classList.remove('hidden');
   activeNote = null;
 
   // if view was opened from a thread, go back to it
@@ -2683,7 +2643,6 @@ function closeModal() {
     threadRootNote = freshRoot;
     renderThread();
     document.getElementById('thread-overlay').classList.add('open');
-    document.getElementById('sidebar-toggle').classList.add('hidden');
     return;
   }
 
@@ -2779,10 +2738,30 @@ document.getElementById('btn-save-edit').addEventListener('click', async () => {
 });
 
 document.addEventListener('keydown', e => {
-  // Alt+S → open spotlight (e.key is 'ß' on Mac with Option)
+  // Alt+S → spotlight
   if (e.altKey && (e.key === 's' || e.key === 'ß')) { e.preventDefault(); openSpotlight(); return; }
-  // Alt+N → open new note modal
+  // Alt+N → new note
   if (e.altKey && (e.key === 'n' || e.key === '~' || e.key === 'Dead' || e.key === '')) { e.preventDefault(); openNewNote(); return; }
+  // Alt+, → settings
+  if (e.altKey && (e.key === ',' || e.key === '<')) { e.preventDefault(); document.getElementById('settings-overlay')?.classList.add('open'); return; }
+  // Alt+T → open thread of active note
+  if (e.altKey && (e.key === 't' || e.key === '†')) {
+    e.preventDefault();
+    if (activeNote) { openThread(activeNote); closeModal(); }
+    return;
+  }
+  // Cmd/Ctrl+Enter → save in edit modal
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    if (document.getElementById('edit-modal').classList.contains('open')) {
+      e.preventDefault(); document.getElementById('btn-save-edit').click(); return;
+    }
+    if (document.getElementById('reply-overlay').classList.contains('open')) {
+      e.preventDefault(); document.getElementById('btn-save-reply').click(); return;
+    }
+    if (document.getElementById('new-note-overlay').classList.contains('open')) {
+      e.preventDefault(); document.getElementById('btn-save-new-note').click(); return;
+    }
+  }
 
   if (e.key !== 'Escape') return;
   if (document.getElementById('reply-overlay').classList.contains('open')) { closeReply(); return; }
@@ -3211,7 +3190,6 @@ function openThread(note, pushToStack) {
   threadRootNote = root;
   renderThread();
   document.getElementById('thread-overlay').classList.add('open');
-  document.getElementById('sidebar-toggle').classList.add('hidden');
 }
 
 function openSubThread(childNote) {
@@ -3223,7 +3201,6 @@ function openSubThread(childNote) {
 
 function closeThread() {
   document.getElementById('thread-overlay').classList.remove('open');
-  document.getElementById('sidebar-toggle').classList.remove('hidden');
   threadRootNote = null;
   threadNavStack = [];
 }
@@ -3977,11 +3954,7 @@ document.getElementById('btn-reset-app').addEventListener('click', async () => {
 });
 
 /* ── sidebar toggle ── */
-const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-sidebarToggleBtn.addEventListener('click', () => {
-  document.body.classList.toggle('sidebar-hidden');
-  sidebarToggleBtn.textContent = document.body.classList.contains('sidebar-hidden') ? '›' : '‹';
-});
+
 
 /* ── right sidebar ── */
 /* ── stat filters ── */
