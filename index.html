@@ -4529,8 +4529,6 @@ function applyStatFilter(filter) {
 document.getElementById('rs-stats').addEventListener('click', e => {
   const row = e.target.closest('.rs-stat-row');
   if (!row) return;
-  // connections stat is just a number (not filterable meaningfully as a list) — skip
-  if (row.dataset.filter === 'connections') return;
   applyStatFilter(row.dataset.filter);
 });
 
