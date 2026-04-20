@@ -2708,13 +2708,14 @@ document.getElementById('btn-save-edit').addEventListener('click', async () => {
   if (!activeNote) return;
   const body = document.getElementById('edit-body').value.trim();
   if (!body) return;
-  const prevType = activeNote.type || 'lit';
+  const prevType  = activeNote.type  || 'lit';
+  const prevTitle = activeNote.title || '';
   activeNote.title = document.getElementById('edit-title').value.trim();
   activeNote.body  = body;
   activeNote.type  = activeNote.parentId ? 'thread' : editNoteType;
-  // if type changed, delete file from old folder first
+  // if type changed, delete file from old folder first (using original title for filename)
   if (!activeNote.parentId && prevType !== editNoteType) {
-    const noteWithOldType = { ...activeNote, type: prevType };
+    const noteWithOldType = { ...activeNote, title: prevTitle, type: prevType };
     await deleteNoteFromVault(noteWithOldType);
   }
   await putNote(activeNote);
