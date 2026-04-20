@@ -195,6 +195,10 @@
     backdrop-filter: blur(12px);
     padding: 1.1rem 0 0.9rem;
     border-bottom: 1px solid var(--border);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  #composer-wrap.composer-hidden {
+    transform: translateY(-110%);
   }
 
   #composer {
@@ -304,6 +308,82 @@
     gap: 18px;
   }
 
+  /* ── feed header row (sort) ── */
+  .feed-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .sort-select {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text2);
+    font-size: 12px;
+    font-family: var(--font);
+    padding: 4px 8px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .sort-select:hover { border-color: var(--text3); color: var(--text1); }
+  .sort-select option { background: var(--bg2); color: var(--text1); }
+
+  /* ── markdown preview in modal editors ── */
+  .editor-area {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 200px;
+  }
+  .editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .editor-pane .hl-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .editor-pane .hl-wrap textarea {
+    flex: 1;
+    min-height: 0;
+  }
+  .editor-area.split .editor-pane:first-child {
+    border-right: 1px solid var(--border);
+  }
+  .preview-pane {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 1rem;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text2);
+    display: none;
+  }
+  .editor-area.preview-only .hl-wrap { display: none; }
+  .editor-area.preview-only .preview-pane { display: block; flex: 1; padding: 0; }
+  .preview-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: var(--font);
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 5px;
+    line-height: 1.4;
+    transition: color 0.12s, background 0.12s;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+  }
+  .preview-toggle-btn:hover { color: var(--text1); background: var(--bg3); }
+  .preview-toggle-btn.active { color: var(--blue); background: var(--blue-bg); }
+
   .filter-banner {
     display: flex;
     align-items: center;
@@ -352,6 +432,35 @@
 
   .card-title { font-size: 14px; font-weight: 600; color: var(--text1); letter-spacing: -0.01em; }
   .card-date  { font-size: 11.5px; color: var(--text3); white-space: nowrap; flex-shrink: 0; }
+
+  .card-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+  }
+  .card-favicons {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .card-favicon {
+    width: 13px;
+    height: 13px;
+    border-radius: 2px;
+    opacity: 0.7;
+    flex-shrink: 0;
+    display: block;
+  }
+  .card-favicon-more {
+    font-size: 10px;
+    color: var(--text3);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
 
   .card-body {
     font-size: 13.5px;
@@ -477,9 +586,10 @@
   #modal-overlay.open { display: flex; }
 
   #view-modal {
-    width: 720px;
+    width: 960px;
     max-width: 95vw;
     height: 82vh;
+    margin-left: 40px;
     background: var(--bg2);
     border: 1px solid var(--border2);
     border-radius: var(--radius-lg);
@@ -575,7 +685,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--bg);
+    background: var(--bg2);
   }
   .connections-header {
     padding: 0.65rem 0.85rem;
@@ -765,16 +875,20 @@
     border: none;
     outline: none;
     font-size: 14px;
-    color: var(--text2);
+    color: transparent;
+    caret-color: var(--text1);
     font-family: var(--font);
     line-height: 1.65;
     resize: none;
     min-height: 200px;
+    position: relative;
+    z-index: 1;
   }
   #edit-body::placeholder { color: var(--text3); font-style: italic; }
 
   .edit-footer {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 8px;
     padding: 0.75rem 1.25rem;
@@ -1053,9 +1167,9 @@
   #new-note-overlay.open { display: flex; }
 
   #new-note-box {
-    width: 600px;
-    max-width: 95vw;
-    max-height: 88vh;
+    width: 850px;
+    max-width: 85vw;
+    max-height: 90vh;
     background: var(--bg2);
     border: 1px solid var(--border2);
     border-radius: var(--radius-lg);
@@ -1128,13 +1242,44 @@
     border: none;
     outline: none;
     font-size: 14px;
-    color: var(--text2);
+    color: transparent;
+    caret-color: var(--text1);
     font-family: var(--font);
     line-height: 1.65;
     resize: none;
     min-height: 200px;
+    position: relative;
+    z-index: 1;
   }
   #new-note-body-input::placeholder { color: var(--text3); font-style: italic; }
+
+  /* ── wikilink live highlight overlay ── */
+  .hl-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .hl-backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 14px;
+    font-family: var(--font);
+    line-height: 1.65;
+    color: var(--text2);
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  .hl-backdrop .hl-wikilink {
+    color: var(--blue);
+    border-radius: 2px;
+  }
 
   /* ── shared modal footer ── */
   .modal-footer {
@@ -1669,15 +1814,184 @@
     flex: 1;
   }
 
+  /* ── attachments ── */
+  .attach-preview-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 0 2px;
+  }
+  .attach-thumb {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 4px 7px;
+    font-size: 11.5px;
+    color: var(--text2);
+    max-width: 160px;
+    overflow: hidden;
+  }
+  .attach-thumb img {
+    width: 28px;
+    height: 28px;
+    object-fit: cover;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .attach-thumb-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+  }
+  .attach-thumb-remove {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0 0 0 3px;
+    flex-shrink: 0;
+    transition: color 0.12s;
+  }
+  .attach-thumb-remove:hover { color: var(--red); }
+
+  /* clip btn in composer footers */
+  .attach-clip-btn {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: color 0.12s, background 0.12s;
+    font-size: 13px;
+  }
+  .attach-clip-btn:hover { color: var(--blue); background: var(--blue-bg); }
+  .attach-clip-btn svg { width: 14px; height: 14px; }
+
+  /* ── word count (Obsidian-style, bottom-left of modal footers) ── */
+  .modal-wc {
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.01em;
+    margin-right: auto;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  .modal-wc.has-content { color: var(--text2); }
+
+  /* clip badge on feed card */
+  .card-attach-badge {
+    display: flex;
+    align-items: center;
+    color: var(--text3);
+    padding: 4px 5px;
+    border-radius: 6px;
+    line-height: 1;
+  }
+  .card-attach-badge svg { width: 13px; height: 13px; }
+
+  /* attachments in view modal */
+  .view-attachments {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .view-attachments-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .view-attach-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .view-attach-img {
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border2);
+    object-fit: contain;
+    cursor: zoom-in;
+    transition: opacity 0.15s;
+  }
+  .view-attach-img:hover { opacity: 0.88; }
+  .view-attach-files {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .view-attach-file {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    color: var(--text1);
+    text-decoration: none;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .view-attach-file:hover { border-color: var(--blue-border); background: var(--blue-bg); color: var(--blue); }
+  .view-attach-file svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--text3); }
+  .view-attach-file-size { margin-left: auto; font-size: 11px; color: var(--text3); }
+
+  /* lightbox */
+  #lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0,0,0,0.92);
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img {
+    max-width: 92vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  }
+
   #feed {
     display: flex;
     flex-direction: column;
     gap: 18px;
   }
-</style>
 
+</style>
 </head>
 <body>
+
+<!-- lightbox -->
+<div id="lightbox"><img id="lightbox-img" src="" alt=""></div>
+
+<!-- hidden file inputs for each composer -->
+<input type="file" id="attach-input-feed"     multiple accept="*/*" style="display:none">
+<input type="file" id="attach-input-new-note" multiple accept="*/*" style="display:none">
+<input type="file" id="attach-input-reply"    multiple accept="*/*" style="display:none">
+<input type="file" id="attach-input-edit"     multiple accept="*/*" style="display:none">
 
 <div id="layout">
 
@@ -1725,14 +2039,26 @@
         </div>
         <div class="cdiv"></div>
         <textarea id="note-body" placeholder="Write here..." rows="3"></textarea>
+        <div id="attach-preview-feed" class="attach-preview-strip" style="display:none"></div>
         <div class="composer-footer">
           <span id="char-count"></span>
+          <button class="attach-clip-btn" id="btn-attach-feed" title="Attach file">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
           <button id="btn-save" disabled>Save</button>
         </div>
       </div>
     </div>
 
     <div id="feed-wrap">
+      <div class="feed-header">
+        <select class="sort-select" id="feed-sort">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="lit">LIT only</option>
+          <option value="src">SRC only</option>
+        </select>
+      </div>
       <div id="pinned-area"></div>
       <div id="filter-banner" class="filter-banner" style="display:none">
         ← all notes &nbsp;<strong id="filter-label"></strong>
@@ -1940,10 +2266,25 @@
         <button class="md-btn" data-wrap="- " data-line title="List">—</button>
         <button class="md-btn" data-task title="Task">☐</button>
         <button class="md-btn" data-hr title="HR">─</button>
+        <div class="md-sep"></div>
+        <button class="attach-clip-btn" id="btn-attach-edit" title="Attach file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <button class="preview-toggle-btn" data-editor="edit" title="Preview" style="margin-left:auto;">Preview</button>
       </div>
-      <textarea id="edit-body" placeholder="Write here... (supports **markdown**)"></textarea>
+      <div class="editor-area" id="editor-area-edit">
+        <div class="editor-pane">
+          <div class="hl-wrap">
+            <div class="hl-backdrop" id="hl-edit"></div>
+            <textarea id="edit-body" placeholder="Write here... (supports **markdown**)"></textarea>
+          </div>
+        </div>
+        <div class="preview-pane md-render" id="preview-edit"></div>
+      </div>
+      <div id="attach-preview-edit" class="attach-preview-strip" style="display:none"></div>
     </div>
     <div class="edit-footer">
+      <span class="modal-wc" id="wc-edit">0 words</span>
       <button class="btn-cancel" id="btn-cancel-edit">Cancel</button>
       <button class="btn-save-edit" id="btn-save-edit">Save</button>
     </div>
@@ -2002,10 +2343,14 @@
       <div class="reply-composer-dot"></div>
       <div class="reply-composer-inner">
         <textarea id="reply-body-input" placeholder="Write your reply..." rows="4"></textarea>
+        <div id="attach-preview-reply" class="attach-preview-strip" style="display:none"></div>
       </div>
     </div>
     <div class="reply-footer">
       <span class="reply-replying-to">Replying to <span id="reply-to-label"></span></span>
+      <button class="attach-clip-btn" id="btn-attach-reply" title="Attach file" style="margin-left:auto;margin-right:6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
       <button class="btn-reply" id="btn-save-reply" disabled>Reply</button>
     </div>
   </div>
@@ -2058,10 +2403,25 @@
         <button class="md-btn" data-wrap="- " data-line title="List">—</button>
         <button class="md-btn" data-task title="Task">☐</button>
         <button class="md-btn" data-hr title="HR">─</button>
+        <div class="md-sep"></div>
+        <button class="attach-clip-btn" id="btn-attach-new-note" title="Attach file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <button class="preview-toggle-btn" data-editor="new-note" title="Preview" style="margin-left:auto;">Preview</button>
       </div>
-      <textarea id="new-note-body-input" placeholder="Write here... (supports **markdown**)" rows="10"></textarea>
+      <div class="editor-area" id="editor-area-new-note">
+        <div class="editor-pane">
+          <div class="hl-wrap">
+            <div class="hl-backdrop" id="hl-new-note"></div>
+            <textarea id="new-note-body-input" placeholder="Write here... (supports **markdown**)" rows="10"></textarea>
+          </div>
+        </div>
+        <div class="preview-pane md-render" id="preview-new-note"></div>
+      </div>
+      <div id="attach-preview-new-note" class="attach-preview-strip" style="display:none"></div>
     </div>
     <div class="modal-footer">
+      <span class="modal-wc" id="wc-new-note">0 words</span>
       <button class="btn-cancel" id="btn-cancel-new-note">Cancel</button>
       <button class="btn-save-edit" id="btn-save-new-note">Save</button>
     </div>
@@ -2236,6 +2596,20 @@ function getReplyCount(noteId) {
   return count;
 }
 
+function extractFavicons(body) {
+  if (!body) return [];
+  const urlRegex = /https?:\/\/[^\s<>"']+/g;
+  const matches = body.match(urlRegex) || [];
+  const seen = new Map();
+  for (const url of matches) {
+    try {
+      const u = new URL(url);
+      if (!seen.has(u.hostname)) seen.set(u.hostname, u.origin);
+    } catch(e) {}
+  }
+  return [...seen.entries()].map(([hostname, origin]) => ({ hostname, origin }));
+}
+
 function buildCard(n, inThread = false) {
   const card = document.createElement('div');
   card.className = 'note-card' + (pinnedIds.has(n.id) ? ' pinned' : '');
@@ -2244,13 +2618,25 @@ function buildCard(n, inThread = false) {
   const hasTitle = n.title && n.title.trim();
   const replyCount = getReplyCount(n.id);
   const linkCount  = ((n.body || '').match(/\[\[[^\]]+\]\]/g) || []).length;
+  const favicons   = extractFavicons(n.body);
+  const showFavs   = favicons.slice(0, 2);
+  const extraFavs  = favicons.length > 2;
+
+  const faviconHTML = showFavs.length > 0 ? `
+    <span class="card-favicons" data-favicons='${JSON.stringify(showFavs)}' data-extra="${extraFavs}">
+      ${showFavs.map(() => `<img class="card-favicon" alt="" loading="lazy">`).join('')}
+      ${extraFavs ? '<span class="card-favicon-more">…</span>' : ''}
+    </span>` : '';
 
   // strip content at first HR for card preview
   const previewBody = (n.body || '').split(/\n---+\n|\n\*\*\*+\n|\n___+\n/)[0].trim();
 
   card.innerHTML = `
     <div class="card-header">
-      ${hasTitle ? `<span class="card-title">${esc(n.title)}</span>` : '<span></span>'}
+      <div class="card-title-wrap">
+        ${faviconHTML}
+        ${hasTitle ? `<span class="card-title">${esc(n.title)}</span>` : '<span></span>'}
+      </div>
       <span class="card-date">${formatShort(n.createdAt)}</span>
     </div>
     <div class="card-body">${renderMarkdown(previewBody)}</div>
@@ -2277,17 +2663,42 @@ function buildCard(n, inThread = false) {
           ${linkCount}
         </span>` : ''}
       </div>
-      <button class="card-pin-btn btn-card-pin ${pinnedIds.has(n.id) ? 'active' : ''}" title="${pinnedIds.has(n.id) ? 'Unpin' : 'Pin note'}">
-        <svg viewBox="0 0 24 24" fill="${pinnedIds.has(n.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
-        </svg>
-      </button>
+      <div style="display:flex;align-items:center;gap:2px;">
+        ${(n.attachments && n.attachments.length > 0) ? `
+        <span class="card-attach-badge" title="${n.attachments.length} attachment${n.attachments.length !== 1 ? 's' : ''}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </span>` : ''}
+        <button class="card-pin-btn btn-card-pin ${pinnedIds.has(n.id) ? 'active' : ''}" title="${pinnedIds.has(n.id) ? 'Unpin' : 'Pin note'}">
+          <svg viewBox="0 0 24 24" fill="${pinnedIds.has(n.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+          </svg>
+        </button>
+      </div>
     </div>
   `;
 
   // click body → open view (not footer)
   card.querySelector('.card-body').addEventListener('click', () => { viewFromThread = false; openView(n); });
   card.querySelector('.card-header').addEventListener('click', () => { viewFromThread = false; openView(n); });
+
+  // wire favicon imgs with cascade fallback: /favicon.ico → google service → hide
+  const faviconWrap = card.querySelector('.card-favicons');
+  if (faviconWrap && showFavs.length > 0) {
+    const imgs = faviconWrap.querySelectorAll('img.card-favicon');
+    imgs.forEach((img, i) => {
+      const { hostname, origin } = showFavs[i];
+      const googleFav = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=16`;
+      img.src = `${origin}/favicon.ico`;
+      img.onerror = function() {
+        if (this.src !== googleFav) {
+          this.src = googleFav;
+          this.onerror = function() { this.style.display = 'none'; };
+        } else {
+          this.style.display = 'none';
+        }
+      };
+    });
+  }
 
   // reply button
   card.querySelector('.btn-card-reply').addEventListener('click', e => {
@@ -2619,6 +3030,55 @@ function openView(note) {
   const bodyEl = document.getElementById('view-note-body');
   bodyEl.innerHTML = renderMarkdown(note.body);
   attachWikilinkClickHandlers(bodyEl);
+
+  // render attachments
+  const existing = bodyEl.parentElement.querySelector('.view-attachments');
+  if (existing) existing.remove();
+  if (note.attachments && note.attachments.length > 0) {
+    const wrap = document.createElement('div');
+    wrap.className = 'view-attachments';
+    wrap.innerHTML = '<div class="view-attachments-label">Attachments</div>';
+
+    const images = note.attachments.filter(a => a.type.startsWith('image/'));
+    const files  = note.attachments.filter(a => !a.type.startsWith('image/'));
+
+    if (images.length > 0) {
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'view-attach-images';
+      images.forEach(att => {
+        const img = document.createElement('img');
+        img.className = 'view-attach-img';
+        img.src = att.data;
+        img.alt = att.name;
+        img.title = att.name;
+        img.addEventListener('click', () => openLightbox(att.data));
+        imgWrap.appendChild(img);
+      });
+      wrap.appendChild(imgWrap);
+    }
+
+    if (files.length > 0) {
+      const fileWrap = document.createElement('div');
+      fileWrap.className = 'view-attach-files';
+      files.forEach(att => {
+        const a = document.createElement('a');
+        a.className = 'view-attach-file';
+        a.href = att.data;
+        a.download = att.name;
+        const sizeKB = Math.round((att.data.length * 3/4) / 1024);
+        a.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>${esc(att.name)}</span>
+          <span class="view-attach-file-size">${sizeKB > 1024 ? (sizeKB/1024).toFixed(1)+'MB' : sizeKB+'KB'}</span>
+        `;
+        fileWrap.appendChild(a);
+      });
+      wrap.appendChild(fileWrap);
+    }
+
+    bodyEl.parentElement.appendChild(wrap);
+  }
+
   renderConnections(note);
   document.getElementById('view-modal').style.display = 'flex';
   document.getElementById('edit-modal').classList.remove('open');
@@ -2663,8 +3123,12 @@ function openEdit() {
   editNoteType = activeNote.type || 'lit';
   editOriginalType = editNoteType;
   setTypeToggle('#edit-type-toggle', editNoteType);
+  // reset edit pending and show existing attachments
+  pendingAttachments.edit = [];
+  renderAttachmentPreview('edit', activeNote.attachments || []);
   document.getElementById('view-modal').style.display = 'none';
   document.getElementById('edit-modal').classList.add('open');
+  updateWc('edit-body', 'wc-edit');
 }
 
 function closeEdit() {
@@ -2713,6 +3177,9 @@ document.getElementById('btn-save-edit').addEventListener('click', async () => {
   activeNote.title = document.getElementById('edit-title').value.trim();
   activeNote.body  = body;
   activeNote.type  = activeNote.parentId ? 'thread' : editNoteType;
+  // merge existing attachments with any newly added ones in edit mode
+  const existingAtts = activeNote.attachments || [];
+  activeNote.attachments = [...existingAtts, ...pendingAttachments.edit];
   // if type changed, delete file from old folder first (using original title for filename)
   if (!activeNote.parentId && prevType !== editNoteType) {
     const noteWithOldType = { ...activeNote, title: prevTitle, type: prevType };
@@ -2720,6 +3187,7 @@ document.getElementById('btn-save-edit').addEventListener('click', async () => {
   }
   await putNote(activeNote);
   await writeNoteToVault(activeNote);
+  clearPendingAttachments('edit');
   allNotes = await getAllNotes();
   const toShow = activeDay ? allNotes.filter(n => {
     const d = new Date(n.createdAt);
@@ -3047,10 +3515,11 @@ bodyEl.addEventListener('keydown', e => {
 saveBtn.addEventListener('click', async () => {
   const body = bodyEl.value.trim();
   if (!body) return;
-  const note = { id: crypto.randomUUID(), title: titleEl.value.trim(), body, type: composerType, createdAt: Date.now() };
+  const note = { id: crypto.randomUUID(), title: titleEl.value.trim(), body, type: composerType, createdAt: Date.now(), attachments: pendingAttachments.feed.slice() };
   await putNote(note);
   await writeNoteToVault(note);
   titleEl.value = ''; bodyEl.value = ''; updateUI();
+  clearPendingAttachments('feed');
   setTypeToggle('#composer-type-toggle', 'lit'); composerType = 'lit';
   allNotes = await getAllNotes();
   renderFeed(allNotes);
@@ -3062,11 +3531,26 @@ function openNewNote() {
   document.getElementById('new-note-overlay').classList.add('open');
   document.getElementById('new-note-title-input').value = '';
   document.getElementById('new-note-body-input').value = '';
+  syncHighlight('new-note-body-input', 'hl-new-note');
+  updateWc('new-note-body-input', 'wc-new-note');
+  newNoteType = 'lit';
+  document.querySelectorAll('[data-group="new-note"].type-btn').forEach(b => {
+    const active = b.dataset.type === 'lit';
+    b.style.background = active ? 'var(--blue-bg)' : 'transparent';
+    b.style.color = active ? 'var(--blue)' : 'var(--text3)';
+  });
+  const nnArea = document.getElementById('editor-area-new-note');
+  if (nnArea) {
+    nnArea.classList.remove('preview-only');
+    const nnBtn = document.querySelector('.preview-toggle-btn[data-editor="new-note"]');
+    if (nnBtn) nnBtn.classList.remove('active');
+  }
   setTimeout(() => document.getElementById('new-note-title-input').focus(), 30);
 }
 
 function closeNewNote() {
   document.getElementById('new-note-overlay').classList.remove('open');
+  clearPendingAttachments('new-note');
 }
 
 document.getElementById('btn-close-new-note').addEventListener('click', closeNewNote);
@@ -3079,10 +3563,11 @@ document.getElementById('btn-save-new-note').addEventListener('click', async () 
   const body = document.getElementById('new-note-body-input').value.trim();
   if (!body) return;
   const title = document.getElementById('new-note-title-input').value.trim();
-  const note = { id: crypto.randomUUID(), title, body, type: newNoteType, createdAt: Date.now() };
+  const note = { id: crypto.randomUUID(), title, body, type: newNoteType, createdAt: Date.now(), attachments: pendingAttachments['new-note'].slice() };
   await putNote(note);
   await writeNoteToVault(note);
   closeNewNote();
+  clearPendingAttachments('new-note');
   allNotes = await getAllNotes();
   renderFeed(allNotes);
   buildCalendar(allNotes);
@@ -3119,6 +3604,7 @@ function closeReply() {
   replyFromThread = false;
   replyIsSubThread = false;
   replySubThreadParent = null;
+  clearPendingAttachments('reply');
 }
 
 document.getElementById('btn-close-reply').addEventListener('click', closeReply);
@@ -3139,10 +3625,12 @@ document.getElementById('btn-save-reply').addEventListener('click', async () => 
     body,
     type: 'thread',
     parentId: replyTargetNote.id,
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    attachments: pendingAttachments.reply.slice()
   };
   await putNote(newNote);
   await writeNoteToVault(newNote);
+  clearPendingAttachments('reply');
   const fromThread    = replyFromThread;
   const isSubThread   = replyIsSubThread;
   const subParent     = replySubThreadParent;
@@ -3586,8 +4074,20 @@ function setTypeToggle(containerSelector, type) {
 }
 
 initTypeToggle('#composer-type-toggle', t => { composerType = t; });
-initTypeToggle('[data-group="new-note"]', t => { newNoteType = t; });
 initTypeToggle('#edit-type-toggle',        t => { editNoteType = t; });
+
+// new-note type toggle: buttons have data-group directly, no wrapper id
+(function() {
+  const btns = document.querySelectorAll('[data-group="new-note"].type-btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => { b.style.background = 'transparent'; b.style.color = 'var(--text3)'; });
+      btn.style.background = 'var(--blue-bg)';
+      btn.style.color = 'var(--blue)';
+      newNoteType = btn.dataset.type;
+    });
+  });
+})();
 
 /* ── File System API ── */
 const FS_STORE = 'zettel-fs';
@@ -4120,6 +4620,182 @@ function updateRightSidebar() {
   }
 }
 
+/* ── attachment engine ── */
+// pending attachments per composer: { feed: [], 'new-note': [], reply: [], edit: [] }
+const pendingAttachments = { feed: [], 'new-note': [], reply: [], edit: [] };
+
+const MAX_IMAGE_PX = 1600; // max dimension for pasted/uploaded images
+const MAX_FILE_MB  = 10;
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + 'KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + 'MB';
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = () => res(reader.result);
+    reader.onerror = () => rej(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function resizeImageDataURL(dataURL, maxPx) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      let { width: w, height: h } = img;
+      if (w <= maxPx && h <= maxPx) { res(dataURL); return; }
+      const scale = Math.min(maxPx / w, maxPx / h);
+      w = Math.round(w * scale); h = Math.round(h * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      res(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.src = dataURL;
+  });
+}
+
+function renderAttachmentPreview(composerId, atts) {
+  const strip = document.getElementById(`attach-preview-${composerId}`);
+  if (!strip) return;
+  strip.innerHTML = '';
+  strip.style.display = atts.length > 0 ? 'flex' : 'none';
+  atts.forEach((att, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'attach-thumb';
+    const isImage = att.type && att.type.startsWith('image/');
+    if (isImage) {
+      const img = document.createElement('img');
+      img.src = att.data;
+      thumb.appendChild(img);
+    } else {
+      const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      icon.setAttribute('viewBox', '0 0 24 24');
+      icon.setAttribute('fill', 'none');
+      icon.setAttribute('stroke', 'currentColor');
+      icon.setAttribute('stroke-width', '2');
+      icon.setAttribute('width', '16');
+      icon.setAttribute('height', '16');
+      icon.innerHTML = '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>';
+      thumb.appendChild(icon);
+    }
+    const name = document.createElement('span');
+    name.className = 'attach-thumb-name';
+    name.textContent = att.name;
+    name.title = att.name;
+    thumb.appendChild(name);
+
+    const rmBtn = document.createElement('button');
+    rmBtn.className = 'attach-thumb-remove';
+    rmBtn.textContent = '×';
+    rmBtn.title = 'Remove';
+    rmBtn.addEventListener('click', () => {
+      // For edit, atts is a merged view — handle carefully
+      if (composerId === 'edit') {
+        // If index is within existing atts, mark for removal in activeNote.attachments
+        const existing = activeNote ? (activeNote.attachments || []) : [];
+        if (i < existing.length) {
+          existing.splice(i, 1);
+          if (activeNote) activeNote.attachments = existing;
+          renderAttachmentPreview('edit', [...existing, ...pendingAttachments.edit]);
+        } else {
+          pendingAttachments.edit.splice(i - existing.length, 1);
+          renderAttachmentPreview('edit', [...existing, ...pendingAttachments.edit]);
+        }
+      } else {
+        pendingAttachments[composerId].splice(i, 1);
+        renderAttachmentPreview(composerId, pendingAttachments[composerId]);
+      }
+    });
+    thumb.appendChild(rmBtn);
+    strip.appendChild(thumb);
+  });
+}
+
+async function processFiles(files, composerId) {
+  for (const file of files) {
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+      showToast(`${file.name} is too large (max ${MAX_FILE_MB}MB)`);
+      continue;
+    }
+    let data = await fileToBase64(file);
+    if (file.type.startsWith('image/')) {
+      data = await resizeImageDataURL(data, MAX_IMAGE_PX);
+    }
+    pendingAttachments[composerId].push({ name: file.name, type: file.type, data });
+  }
+  // For edit, show merged existing + pending
+  if (composerId === 'edit') {
+    const existing = activeNote ? (activeNote.attachments || []) : [];
+    renderAttachmentPreview('edit', [...existing, ...pendingAttachments.edit]);
+  } else {
+    renderAttachmentPreview(composerId, pendingAttachments[composerId]);
+  }
+}
+
+function clearPendingAttachments(composerId) {
+  pendingAttachments[composerId] = [];
+  renderAttachmentPreview(composerId, []);
+}
+
+// Wire clip buttons to file inputs
+const clipConfig = [
+  { btn: 'btn-attach-feed',     input: 'attach-input-feed',     id: 'feed'     },
+  { btn: 'btn-attach-new-note', input: 'attach-input-new-note', id: 'new-note' },
+  { btn: 'btn-attach-reply',    input: 'attach-input-reply',    id: 'reply'    },
+  { btn: 'btn-attach-edit',     input: 'attach-input-edit',     id: 'edit'     },
+];
+clipConfig.forEach(({ btn, input, id }) => {
+  const btnEl   = document.getElementById(btn);
+  const inputEl = document.getElementById(input);
+  if (!btnEl || !inputEl) return;
+  btnEl.addEventListener('click', e => { e.stopPropagation(); inputEl.click(); });
+  inputEl.addEventListener('change', () => {
+    if (inputEl.files.length) processFiles(Array.from(inputEl.files), id);
+    inputEl.value = '';
+  });
+});
+
+// Paste handler — images from clipboard, works in any textarea inside a composer
+function getComposerIdFromElement(el) {
+  if (!el) return null;
+  if (el.closest('#composer'))         return 'feed';
+  if (el.closest('#new-note-box'))     return 'new-note';
+  if (el.closest('#reply-box'))        return 'reply';
+  if (el.closest('#edit-modal'))       return 'edit';
+  return null;
+}
+
+document.addEventListener('paste', async (e) => {
+  const composerId = getComposerIdFromElement(document.activeElement);
+  if (!composerId) return;
+  const items = Array.from(e.clipboardData.items || []);
+  const imageItems = items.filter(it => it.kind === 'file' && it.type.startsWith('image/'));
+  if (!imageItems.length) return;
+  e.preventDefault();
+  const files = imageItems.map(it => it.getAsFile()).filter(Boolean);
+  await processFiles(files, composerId);
+});
+
+// Lightbox
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+document.getElementById('lightbox').addEventListener('click', () => {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('lightbox').classList.contains('open')) {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+});
+
 /* ── init ── */
 const now = new Date();
 calYear = now.getFullYear(); calMonth = now.getMonth();
@@ -4129,6 +4805,127 @@ attachWikilink('note-body');
 attachWikilink('new-note-body-input');
 attachWikilink('reply-body-input');
 attachWikilink('edit-body');
+
+// ── feed sort ────────────────────────────────────────────────────────────────
+let feedSort = 'newest';
+document.getElementById('feed-sort').addEventListener('change', function() {
+  feedSort = this.value;
+  const toShow = activeDay ? allNotes.filter(n => {
+    const d = new Date(n.createdAt);
+    return d.getFullYear() === activeDay.y && d.getMonth() === activeDay.m && d.getDate() === activeDay.d;
+  }) : allNotes;
+  renderFeed(toShow);
+});
+const _origRenderFeed = renderFeed;
+renderFeed = function(notes, resetPage = true) {
+  let sorted = notes.slice();
+  if (feedSort === 'newest') sorted.sort((a,b) => b.createdAt - a.createdAt);
+  else if (feedSort === 'oldest') sorted.sort((a,b) => a.createdAt - b.createdAt);
+  else if (feedSort === 'lit') sorted = sorted.filter(n => (n.type || 'lit') === 'lit');
+  else if (feedSort === 'src') sorted = sorted.filter(n => n.type === 'src');
+  _origRenderFeed(sorted, resetPage);
+};
+// ────────────────────────────────────────────────────────────────────────────
+
+// ── markdown preview toggle ──────────────────────────────────────────────────
+function syncPreview(textareaId, previewId) {
+  const ta = document.getElementById(textareaId);
+  const pv = document.getElementById(previewId);
+  if (!ta || !pv) return;
+  pv.innerHTML = renderMarkdown(ta.value);
+  attachWikilinkClickHandlers(pv);
+}
+document.querySelectorAll('.preview-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const editorKey = btn.dataset.editor;
+    const area = document.getElementById('editor-area-' + editorKey);
+    const textareaId = editorKey === 'edit' ? 'edit-body' : 'new-note-body-input';
+    const isPreview = area.classList.toggle('preview-only');
+    btn.classList.toggle('active', isPreview);
+    if (isPreview) syncPreview(textareaId, 'preview-' + editorKey);
+  });
+});
+['edit-body', 'new-note-body-input'].forEach(id => {
+  const editorKey = id === 'edit-body' ? 'edit' : 'new-note';
+  document.getElementById(id).addEventListener('input', () => {
+    const area = document.getElementById('editor-area-' + editorKey);
+    if (area.classList.contains('preview-only')) syncPreview(id, 'preview-' + editorKey);
+  });
+});
+const _origCloseEditPreview = closeEdit;
+closeEdit = function() {
+  _origCloseEditPreview();
+  const area = document.getElementById('editor-area-edit');
+  area.classList.remove('preview-only');
+  document.querySelector('.preview-toggle-btn[data-editor="edit"]').classList.remove('active');
+};
+// ────────────────────────────────────────────────────────────────────────────
+
+// ── wikilink live highlight in textarea ─────────────────────────────────────
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function syncHighlight(textareaId, backdropId) {
+  const ta = document.getElementById(textareaId);
+  const bd = document.getElementById(backdropId);
+  if (!ta || !bd) return;
+  if (!ta.value) { bd.innerHTML = ''; return; }
+  const html = escapeHtml(ta.value)
+    .replace(/\[\[[^\]]+\]\]/g, m => `<span class="hl-wikilink">${m}</span>`);
+  bd.innerHTML = html + '\u200b';
+  bd.scrollTop = ta.scrollTop;
+  bd.scrollLeft = ta.scrollLeft;
+}
+
+// Wire up both editors
+['edit-body', 'new-note-body-input'].forEach(id => {
+  const backdropId = id === 'edit-body' ? 'hl-edit' : 'hl-new-note';
+  const ta = document.getElementById(id);
+  ta.addEventListener('input',  () => syncHighlight(id, backdropId));
+  ta.addEventListener('scroll', () => syncHighlight(id, backdropId));
+});
+
+// Sync when edit modal opens (content already set)
+const _origOpenEdit = openEdit;
+openEdit = function() {
+  _origOpenEdit();
+  syncHighlight('edit-body', 'hl-edit');
+  const area = document.getElementById('editor-area-edit');
+  if (area && (area.classList.contains('split') || area.classList.contains('preview-only'))) {
+    syncPreview('edit-body', 'preview-edit');
+  }
+};
+// ────────────────────────────────────────────────────────────────────────────
+function countWords(text) {
+  if (!text.trim()) return 0;
+  // Replace [[wikilink]] with its inner text so brackets don't inflate count
+  const cleaned = text.replace(/\[\[([^\]]+)\]\]/g, '$1');
+  // Strip markdown syntax chars that aren't words
+  const stripped = cleaned.replace(/[#*`>_=~\-]+/g, ' ');
+  return stripped.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+function updateWc(textareaId, wcId) {
+  const ta = document.getElementById(textareaId);
+  const wc = document.getElementById(wcId);
+  if (!ta || !wc) return;
+  const words = countWords(ta.value);
+  const chars = ta.value.length;
+  const links = (ta.value.match(/\[\[[^\]]+\]\]/g) || []).length;
+  let parts = [];
+  if (words > 0) parts.push(`${words.toLocaleString()} words`);
+  if (chars > 0) parts.push(`${chars.toLocaleString()} chars`);
+  if (links > 0) parts.push(`${links} backlink${links !== 1 ? 's' : ''}`);
+  wc.textContent = parts.length ? parts.join('  ·  ') : '0 words';
+  wc.classList.toggle('has-content', words > 0);
+}
+// new-note
+document.getElementById('new-note-body-input').addEventListener('input', () => updateWc('new-note-body-input', 'wc-new-note'));
+// edit modal — also update when opened
+document.getElementById('edit-body').addEventListener('input', () => updateWc('edit-body', 'wc-edit'));
+// reset new-note wc when modal is cleared
+const _origCloseNewNote = closeNewNote;
+closeNewNote = function() { _origCloseNewNote(); updateWc('new-note-body-input', 'wc-new-note'); syncHighlight('new-note-body-input', 'hl-new-note'); };
+// ────────────────────────────────────────────────────────────────────────────
 openDB().then(async () => {
   await openFsDb();
   await loadAllHandles();
@@ -4140,6 +4937,38 @@ openDB().then(async () => {
 });
 
 window.addEventListener('resize', updatePinnedTop);
+
+// ── hide composer after scrolling past 3rd card ──────────────────────────────
+(function() {
+  const wrap = document.getElementById('composer-wrap');
+  let lastY = window.scrollY;
+  let ticking = false;
+
+  function getThreshold() {
+    const cards = document.querySelectorAll('#feed .note-card');
+    if (cards.length >= 3) {
+      return cards[2].getBoundingClientRect().top + window.scrollY;
+    }
+    return 600;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY;
+      const scrollingDown = y > lastY;
+      if (scrollingDown && y > getThreshold()) {
+        wrap.classList.add('composer-hidden');
+      } else if (!scrollingDown) {
+        wrap.classList.remove('composer-hidden');
+      }
+      lastY = y;
+      ticking = false;
+    });
+  }, { passive: true });
+})();
+// ────────────────────────────────────────────────────────────────────────────
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
