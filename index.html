@@ -467,18 +467,29 @@
     color: var(--text2);
     line-height: 1.7;
     word-break: break-word;
-    display: -webkit-box;
-    -webkit-line-clamp: 6;
-    -webkit-box-orient: vertical;
+    max-height: calc(1.7em * 6);
     overflow: hidden;
     margin-bottom: 0.65rem;
     font-weight: 400;
+  }
+  .card-body:not(:has(table)) {
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical;
   }
   .card-body h1, .card-body h2, .card-body h3 { display: inline; font-size: inherit; font-weight: 600; color: var(--text1); }
   .card-body p, .card-body blockquote, .card-body ul, .card-body ol, .card-body pre { display: inline; }
   .card-body br { display: none; }
   .card-body strong { font-weight: 600; color: var(--text1); }
   .card-body mark { background: rgba(255,210,60,0.18); color: #f5d76a; border-radius: 3px; padding: 0 2px; }
+  /* tables in card preview — render properly but cap height */
+  .card-body table { display: table; width: 100%; border-collapse: collapse; margin: 0.3rem 0; font-size: 12px; }
+  .card-body th, .card-body td { display: table-cell; padding: 4px 8px; border: 1px solid var(--border2); text-align: left; }
+  .card-body th { background: var(--bg3); color: var(--text1); font-weight: 600; }
+  .card-body td { color: var(--text2); }
+  .card-body thead, .card-body tbody, .card-body tr { display: table-row-group; }
+  .card-body thead { display: table-header-group; }
+  .card-body tr { display: table-row; }
 
   .card-footer {
     display: flex;
@@ -926,6 +937,29 @@
     cursor: default;
   }
   .md-render .md-task.done span { color: var(--text3); text-decoration: line-through; }
+
+  /* tables in rendered md */
+  .md-render table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 13.5px;
+  }
+  .md-render th, .md-render td {
+    padding: 6px 12px;
+    border: 1px solid var(--border2);
+    text-align: left;
+    line-height: 1.55;
+  }
+  .md-render th {
+    background: var(--bg3);
+    color: var(--text1);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+  }
+  .md-render td { color: var(--text2); }
+  .md-render tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
 
   /* edit modal */
   #edit-modal {
@@ -2734,7 +2768,7 @@
 
 <!-- settings modal -->
 <div id="settings-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
-  <div id="settings-box" style="width:450px;max-width:100vw;max-height:90vh;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.6);display:flex;flex-direction:column;">
+  <div id="settings-box" style="width:400px;max-width:95vw;max-height:70vh;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.6);display:flex;flex-direction:column;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0.65rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;">
       <span style="font-size:13px;font-weight:600;color:var(--text2);">Settings</span>
       <button class="btn-close" id="btn-close-settings">✕</button>
@@ -3466,10 +3500,31 @@ function renderMarkdown(raw) {
   let html = '';
   let inCode = false, codeLang = '', codeLines = [];
   let inUL = false, inOL = false;
+  let inTable = false, tableRows = [];
 
   function closeList() {
     if (inUL) { html += '</ul>'; inUL = false; }
     if (inOL) { html += '</ol>'; inOL = false; }
+  }
+
+  function flushTable() {
+    if (!inTable) return;
+    inTable = false;
+    if (tableRows.length < 2) { html += tableRows.map(r => `<p>${r}</p>`).join(''); tableRows = []; return; }
+    const head = tableRows[0];
+    const body = tableRows.slice(2);
+    const parseRow = (row) => row.replace(/^\|?|\|?$/g, '').split('|').map(c => c.trim());
+    let t = '<table><thead><tr>';
+    parseRow(head).forEach(cell => { t += `<th>${inlineFormat(escLine(cell))}</th>`; });
+    t += '</tr></thead><tbody>';
+    body.forEach(row => {
+      t += '<tr>';
+      parseRow(row).forEach(cell => { t += `<td>${inlineFormat(escLine(cell))}</td>`; });
+      t += '</tr>';
+    });
+    t += '</tbody></table>';
+    html += t;
+    tableRows = [];
   }
 
   function inlineFormat(text) {
@@ -3559,6 +3614,16 @@ function renderMarkdown(raw) {
       continue;
     }
 
+    // table row
+    if (/^\|/.test(line.trim())) {
+      closeList();
+      inTable = true;
+      tableRows.push(line);
+      continue;
+    } else {
+      flushTable();
+    }
+
     closeList();
 
     // empty line
@@ -3568,6 +3633,7 @@ function renderMarkdown(raw) {
     html += `<p>${inlineFormat(escLine(line))}</p>`;
   }
 
+  flushTable();
   closeList();
   if (inCode) html += `<pre><code>${codeLines.map(escLine).join('\n')}</code></pre>`;
 
