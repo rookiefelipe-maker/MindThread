@@ -627,6 +627,96 @@
     flex-shrink: 0;
   }
 
+  /* ── find-in-note bar ── */
+  #find-bar {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 0.45rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    flex-shrink: 0;
+    animation: findBarIn 0.15s ease;
+  }
+  @keyframes findBarIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  #find-bar.open { display: flex; }
+
+  #find-icon {
+    color: var(--text3);
+    font-size: 15px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  #find-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: var(--text1);
+    font-family: var(--font);
+    letter-spacing: -0.01em;
+    min-width: 0;
+  }
+  #find-input::placeholder { color: var(--text3); }
+
+  #find-count {
+    font-size: 11.5px;
+    color: var(--text3);
+    white-space: nowrap;
+    min-width: 52px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  #find-count.has-results { color: var(--blue); }
+  #find-count.no-results  { color: var(--red);  }
+
+  #find-prev, #find-next {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 5px;
+    transition: background 0.12s, color 0.12s;
+    flex-shrink: 0;
+  }
+  #find-prev:hover, #find-next:hover { background: var(--bg4); color: var(--text1); }
+  #find-prev:disabled, #find-next:disabled { opacity: 0.25; cursor: default; }
+
+  #find-close {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 13px;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    transition: background 0.12s, color 0.12s;
+    flex-shrink: 0;
+  }
+  #find-close:hover { background: var(--bg4); color: var(--text1); }
+
+  /* highlight marks inside rendered note body */
+  .find-highlight {
+    background: rgba(255, 210, 60, 0.28);
+    color: #f5d76a;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .find-highlight.find-current {
+    background: rgba(255, 165, 0, 0.55);
+    color: #fff;
+    border-radius: 2px;
+    outline: 1px solid rgba(255,165,0,0.8);
+  }
+
   .btn-delete {
     background: var(--red-bg);
     color: var(--red);
@@ -1165,6 +1255,333 @@
     justify-content: center;
   }
   #new-note-overlay.open { display: flex; }
+
+  /* ── Focus mode layout ── */
+  #new-note-overlay.focus-mode {
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(16px);
+    align-items: stretch;
+    padding: 0;
+  }
+  #new-note-overlay.focus-mode #new-note-box {
+    width: var(--focus-editor-w, 62%);
+    max-width: none;
+    max-height: none;
+    height: 100vh;
+    border-radius: 0;
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    flex-shrink: 0;
+    transition: none;
+  }
+  #new-note-overlay.focus-mode #new-note-box .new-note-inner {
+    flex: 1;
+    overflow-y: auto;
+  }
+  #new-note-overlay.focus-mode #new-note-box .editor-area {
+    flex: 1;
+    min-height: 0;
+  }
+  #new-note-overlay.focus-mode #new-note-box .editor-area .editor-pane {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  #new-note-overlay.focus-mode #new-note-box .editor-area .hl-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  #new-note-overlay.focus-mode #new-note-box .editor-area textarea {
+    flex: 1;
+    min-height: 0;
+    resize: none;
+  }
+  #new-note-overlay.focus-mode #new-note-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Focus sidebar */
+  #focus-sidebar {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  #new-note-overlay.focus-mode #focus-sidebar {
+    display: flex;
+  }
+
+  /* Resize handle */
+  #focus-resize-handle {
+    display: none;
+    width: 8px;
+    height: 100vh;
+    flex-shrink: 0;
+    cursor: col-resize;
+    position: relative;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: background 0.15s;
+  }
+  #focus-resize-handle:hover,
+  #focus-resize-handle.dragging {
+    background: var(--blue-bg);
+  }
+  #focus-resize-grip {
+    width: 2px;
+    height: 40px;
+    border-radius: 2px;
+    background: var(--border2);
+    transition: background 0.15s, height 0.15s;
+    pointer-events: none;
+  }
+  #focus-resize-handle:hover #focus-resize-grip,
+  #focus-resize-handle.dragging #focus-resize-grip {
+    background: var(--blue);
+    height: 60px;
+  }
+  #new-note-overlay.focus-mode #focus-resize-handle {
+    display: flex;
+  }
+
+  /* Focus sidebar search */
+  #focus-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+  #focus-search-icon {
+    color: var(--text3);
+    font-size: 14px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  #focus-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: var(--text1);
+    font-family: var(--font);
+    letter-spacing: -0.01em;
+  }
+  #focus-search-input::placeholder { color: var(--text3); }
+  #focus-search-clear {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 13px;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    transition: background 0.12s, color 0.12s;
+    flex-shrink: 0;
+  }
+  #focus-search-clear:hover { background: var(--bg3); color: var(--text1); }
+
+  /* Focus note list */
+  #focus-notes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+  }
+  #focus-notes-list::-webkit-scrollbar { width: 3px; }
+  #focus-notes-list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  .focus-note-item {
+    padding: 0.65rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .focus-note-item:hover { background: var(--bg2); }
+  .focus-note-item.active { background: var(--blue-bg); border-left: 2px solid var(--blue); }
+
+  .focus-note-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text1);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+  .focus-note-item.active .focus-note-title { color: var(--blue); }
+  .focus-note-meta {
+    font-size: 11px;
+    color: var(--text3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .focus-note-preview {
+    font-size: 12px;
+    color: var(--text3);
+    line-height: 1.5;
+    margin-top: 3px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Focus note viewer pane */
+  #focus-note-viewer {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  #focus-note-viewer.open {
+    display: flex;
+  }
+  #focus-notes-list.hidden { display: none; }
+
+  .focus-viewer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+  .focus-back-btn {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 16px;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    transition: background 0.12s, color 0.12s;
+    flex-shrink: 0;
+  }
+  .focus-back-btn:hover { background: var(--bg3); color: var(--text1); }
+  .focus-viewer-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text2);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .focus-viewer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 1.25rem;
+  }
+  .focus-viewer-body::-webkit-scrollbar { width: 3px; }
+  .focus-viewer-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  .focus-viewer-note-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text1);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
+  }
+  .focus-viewer-note-date {
+    font-size: 11.5px;
+    color: var(--text3);
+    margin-bottom: 1rem;
+  }
+  .focus-viewer-note-body {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.75;
+  }
+
+  /* Focus button in new-note toolbar */
+  .focus-mode-btn {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: var(--font);
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 5px;
+    line-height: 1.4;
+    transition: color 0.12s, background 0.12s;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .focus-mode-btn:hover { color: var(--text1); background: var(--bg3); }
+  .focus-mode-btn.active { color: var(--blue); background: var(--blue-bg); }
+  .focus-mode-btn svg { width: 12px; height: 12px; }
+
+  /* Drag handle on focus note items */
+  .focus-drag-handle {
+    color: var(--text3);
+    font-size: 13px;
+    cursor: grab;
+    flex-shrink: 0;
+    line-height: 1;
+    padding: 0 2px;
+    transition: color 0.12s;
+  }
+  .focus-note-item:hover .focus-drag-handle { color: var(--text2); }
+  .focus-note-item.dragging {
+    opacity: 0.5;
+    background: var(--blue-bg);
+  }
+
+  /* Drop zone highlight on textarea */
+  #new-note-body-input.drag-over {
+    background: rgba(26,132,212,0.06) !important;
+    outline: 2px dashed var(--blue-border) !important;
+    outline-offset: -2px;
+    border-radius: 6px;
+  }
+
+  /* Drop hint that shows while dragging over the editor area */
+  #focus-drop-hint {
+    display: none;
+    position: absolute;
+    bottom: 56px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--blue-bg);
+    color: var(--blue);
+    border: 1px solid var(--blue-border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-family: var(--font);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 20;
+    letter-spacing: 0.01em;
+  }
+  #new-note-box { position: relative; }
+  #new-note-box.drag-active #focus-drop-hint { display: block; }
 
   #new-note-box {
     width: 850px;
@@ -2261,6 +2678,15 @@
       <span class="modal-header-title" id="modal-header-title"></span>
       <button class="btn-close" id="btn-close-modal">✕</button>
     </div>
+    <!-- find-in-note bar -->
+    <div id="find-bar">
+      <span id="find-icon">⌕</span>
+      <input id="find-input" type="text" placeholder="Find in note..." autocomplete="off" spellcheck="false" />
+      <span id="find-count"></span>
+      <button id="find-prev" title="Previous (Shift+Enter)">↑</button>
+      <button id="find-next" title="Next (Enter)">↓</button>
+      <button id="find-close" title="Close (Esc)">✕</button>
+    </div>
     <div class="view-modal-body">
       <div class="modal-content">
         <div id="view-note-title"></div>
@@ -2461,6 +2887,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
         <button class="preview-toggle-btn" data-editor="new-note" title="Preview" style="margin-left:auto;">Preview</button>
+        <button class="focus-mode-btn" id="btn-focus-mode" title="Focus mode  ⇧⌥Z">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          Focus
+        </button>
       </div>
       <div class="editor-area" id="editor-area-new-note">
         <div class="editor-pane">
@@ -2478,6 +2908,33 @@
       <button class="btn-cancel" id="btn-cancel-new-note">Cancel</button>
       <button class="btn-save-edit" id="btn-save-new-note">Save</button>
     </div>
+    <div id="focus-drop-hint">Suelta para insertar como [[backlink]]</div>
+  </div>
+
+  <!-- focus mode resize handle -->
+  <div id="focus-resize-handle">
+    <div id="focus-resize-grip"></div>
+  </div>
+
+  <!-- focus mode sidebar -->
+  <div id="focus-sidebar">
+    <div id="focus-search-wrap">
+      <span id="focus-search-icon">⌕</span>
+      <input type="text" id="focus-search-input" placeholder="Search notes..." autocomplete="off" spellcheck="false" />
+      <button id="focus-search-clear" title="Clear" style="display:none;">✕</button>
+    </div>
+    <div id="focus-notes-list"></div>
+    <div id="focus-note-viewer">
+      <div class="focus-viewer-header">
+        <button class="focus-back-btn" id="focus-back-btn" title="Back to notes">←</button>
+        <span class="focus-viewer-title" id="focus-viewer-title"></span>
+      </div>
+      <div class="focus-viewer-body">
+        <div class="focus-viewer-note-title" id="focus-viewer-note-title"></div>
+        <div class="focus-viewer-note-date" id="focus-viewer-note-date"></div>
+        <div class="focus-viewer-note-body md-render" id="focus-viewer-note-body"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2486,6 +2943,7 @@
 <script>
 const DB_NAME = 'zettel-db', STORE = 'notes';
 let db, activeNote = null, calYear, calMonth, activeDay = null, allNotes = [];
+let focusMode = false;
 
 const DAYS   = ['M','T','W','T','F','S','S'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -3140,6 +3598,7 @@ function openView(note) {
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
+  closeFindBar();
   activeNote = null;
 
   // if view was opened from a thread, go back to it
@@ -3163,6 +3622,158 @@ function closeModal() {
   viewFromThreadRoot  = null;
   viewFromThreadStack = [];
 }
+
+/* ── find-in-note ── */
+let findMatches  = [];
+let findCurrent  = -1;
+let findOrigHTML = null; // snapshot of view-note-body innerHTML before highlighting
+
+function openFindBar() {
+  if (!document.getElementById('modal-overlay').classList.contains('open')) return;
+  if (document.getElementById('edit-modal').classList.contains('open')) return;
+  document.getElementById('find-bar').classList.add('open');
+  const input = document.getElementById('find-input');
+  input.value = '';
+  input.focus();
+  findReset();
+}
+
+function closeFindBar() {
+  document.getElementById('find-bar').classList.remove('open');
+  findReset();
+  document.getElementById('find-input').value = '';
+}
+
+function findReset() {
+  // Restore original HTML (remove all highlights)
+  const body = document.getElementById('view-note-body');
+  if (findOrigHTML !== null) {
+    body.innerHTML = findOrigHTML;
+    attachWikilinkClickHandlers(body);
+    findOrigHTML = null;
+  }
+  findMatches = [];
+  findCurrent = -1;
+  updateFindCount();
+}
+
+function updateFindCount() {
+  const el = document.getElementById('find-count');
+  const total = findMatches.length;
+  if (!document.getElementById('find-input').value.trim()) {
+    el.textContent = '';
+    el.className = '';
+  } else if (total === 0) {
+    el.textContent = 'No results';
+    el.className = 'no-results';
+  } else {
+    el.textContent = `${findCurrent + 1} / ${total}`;
+    el.className = 'has-results';
+  }
+  document.getElementById('find-prev').disabled = total === 0;
+  document.getElementById('find-next').disabled = total === 0;
+}
+
+function findInNote(query) {
+  const body = document.getElementById('view-note-body');
+
+  // Restore clean HTML first
+  if (findOrigHTML !== null) {
+    body.innerHTML = findOrigHTML;
+    attachWikilinkClickHandlers(body);
+  }
+
+  if (!query.trim()) {
+    findOrigHTML = null;
+    findMatches = [];
+    findCurrent = -1;
+    updateFindCount();
+    return;
+  }
+
+  // Save clean snapshot
+  findOrigHTML = body.innerHTML;
+
+  // Walk text nodes and wrap matches
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex   = new RegExp(escaped, 'gi');
+
+  function walkAndHighlight(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent;
+      if (!regex.test(text)) return;
+      regex.lastIndex = 0;
+      const frag = document.createDocumentFragment();
+      let last = 0, m;
+      while ((m = regex.exec(text)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        const mark = document.createElement('mark');
+        mark.className = 'find-highlight';
+        mark.textContent = m[0];
+        frag.appendChild(mark);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'MARK') {
+      // Clone children list because we'll be mutating
+      Array.from(node.childNodes).forEach(walkAndHighlight);
+    }
+  }
+
+  regex.lastIndex = 0;
+  walkAndHighlight(body);
+
+  findMatches = Array.from(body.querySelectorAll('.find-highlight'));
+  findCurrent = findMatches.length > 0 ? 0 : -1;
+  highlightCurrent();
+  updateFindCount();
+}
+
+function highlightCurrent() {
+  findMatches.forEach((m, i) => {
+    m.classList.toggle('find-current', i === findCurrent);
+  });
+  if (findCurrent >= 0 && findMatches[findCurrent]) {
+    findMatches[findCurrent].scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+}
+
+function findStep(dir) {
+  if (!findMatches.length) return;
+  findCurrent = (findCurrent + dir + findMatches.length) % findMatches.length;
+  highlightCurrent();
+  updateFindCount();
+}
+
+// Wire up find bar controls
+document.getElementById('find-input').addEventListener('input', e => {
+  findInNote(e.target.value);
+});
+
+document.getElementById('find-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    findStep(e.shiftKey ? -1 : 1);
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    closeFindBar();
+  }
+});
+
+document.getElementById('find-next').addEventListener('click',  () => findStep(1));
+document.getElementById('find-prev').addEventListener('click',  () => findStep(-1));
+document.getElementById('find-close').addEventListener('click', () => closeFindBar());
+
+// Also reset find bar when opening a new note in the view modal
+const _origOpenView = openView;
+openView = function(note) {
+  findReset();
+  document.getElementById('find-bar').classList.remove('open');
+  document.getElementById('find-input').value = '';
+  _origOpenView(note);
+};
 
 let editFromThread = false;
 let editFromThreadNote = null;
@@ -3264,6 +3875,16 @@ document.addEventListener('keydown', e => {
   if (e.altKey && (e.key === 's' || e.key === 'ß')) { e.preventDefault(); openSpotlight(); return; }
   // Alt+N → new note
   if (e.altKey && (e.key === 'n' || e.key === '~' || e.key === 'Dead' || e.key === '')) { e.preventDefault(); openNewNote(); return; }
+  // Alt+F → find in note (only when view modal is open)
+  if (e.altKey && !e.shiftKey && e.code === 'KeyF') {
+    if (document.getElementById('modal-overlay').classList.contains('open') &&
+        !document.getElementById('edit-modal').classList.contains('open')) {
+      e.preventDefault();
+      if (document.getElementById('find-bar').classList.contains('open')) closeFindBar();
+      else openFindBar();
+      return;
+    }
+  }
   // Alt+, → settings
   if (e.altKey && (e.key === ',' || e.key === '<')) { e.preventDefault(); document.getElementById('settings-overlay')?.classList.add('open'); return; }
   // Alt+T → open thread of active note
@@ -3271,6 +3892,15 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     if (activeNote) { openThread(activeNote); closeModal(); }
     return;
+  }
+  // Shift+Option+Z → toggle Focus mode (only when new-note modal is open)
+  // Use e.code (physical key) instead of e.key which changes with modifiers on macOS
+  if (e.shiftKey && e.altKey && e.code === 'KeyZ') {
+    if (document.getElementById('new-note-overlay').classList.contains('open')) {
+      e.preventDefault();
+      if (focusMode) exitFocusMode(); else enterFocusMode();
+      return;
+    }
   }
   // Cmd/Ctrl+Enter → save in edit modal
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -3609,6 +4239,7 @@ function closeNewNote() {
 document.getElementById('btn-close-new-note').addEventListener('click', closeNewNote);
 document.getElementById('btn-cancel-new-note').addEventListener('click', closeNewNote);
 document.getElementById('new-note-overlay').addEventListener('click', e => {
+  if (focusMode) return; // in focus mode, only close via ✕ or Focus button
   if (e.target === document.getElementById('new-note-overlay')) closeNewNote();
 });
 
@@ -3619,11 +4250,22 @@ document.getElementById('btn-save-new-note').addEventListener('click', async () 
   const note = { id: crypto.randomUUID(), title, body, type: newNoteType, createdAt: Date.now(), attachments: pendingAttachments['new-note'].slice() };
   await putNote(note);
   await writeNoteToVault(note);
-  closeNewNote();
+  const wasFocusMode = focusMode;
   clearPendingAttachments('new-note');
   allNotes = await getAllNotes();
   renderFeed(allNotes);
   buildCalendar(allNotes);
+  if (wasFocusMode) {
+    // Stay in focus mode — just clear the inputs and refresh sidebar list
+    document.getElementById('new-note-title-input').value = '';
+    document.getElementById('new-note-body-input').value = '';
+    syncHighlight('new-note-body-input', 'hl-new-note');
+    updateWc('new-note-body-input', 'wc-new-note');
+    document.getElementById('new-note-title-input').focus();
+    renderFocusList(document.getElementById('focus-search-input').value);
+  } else {
+    closeNewNote();
+  }
 });
 
 document.getElementById('new-note-body-input').addEventListener('keydown', e => {
@@ -3633,7 +4275,343 @@ document.getElementById('new-note-body-input').addEventListener('keydown', e => 
   }
 });
 
-/* ── reply modal ── */
+/* ── Focus mode ── */
+let focusSearchQuery = '';
+
+function renderFocusList(query) {
+  const list = document.getElementById('focus-notes-list');
+  let notes = allNotes.slice();
+  if (query && query.trim()) {
+    const q = query.trim().toLowerCase();
+    notes = notes.filter(n =>
+      (n.title || '').toLowerCase().includes(q) ||
+      (n.body  || '').toLowerCase().includes(q)
+    );
+  }
+  list.innerHTML = '';
+  if (!notes.length) {
+    list.innerHTML = `<div style="padding:2rem 1rem;text-align:center;color:var(--text3);font-size:13px;font-style:italic;">No notes found</div>`;
+    return;
+  }
+  notes.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'focus-note-item';
+    item.dataset.id = n.id;
+    item.draggable = true;
+    item.dataset.noteTitle = n.title || 'Untitled';
+    const preview = (n.body || '').replace(/[#*`>=\-]/g, '').slice(0, 90).trim();
+    item.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="focus-drag-handle" title="Drag to insert as backlink">⠿</span>
+        <div class="focus-note-title" style="flex:1;">${esc(n.title || 'Untitled')}</div>
+      </div>
+      <div class="focus-note-meta">${formatShort(n.createdAt)}</div>
+      ${preview ? `<div class="focus-note-preview">${esc(preview)}</div>` : ''}
+    `;
+    item.addEventListener('click', () => openFocusViewer(n));
+    // drag events
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', `[[${n.title || 'Untitled'}]]`);
+      e.dataTransfer.setData('application/zettel-note', n.title || 'Untitled');
+      e.dataTransfer.effectAllowed = 'copy';
+      item.classList.add('dragging');
+      // Custom ghost: show just the wikilink text
+      const ghost = document.createElement('div');
+      ghost.textContent = `[[${n.title || 'Untitled'}]]`;
+      ghost.style.cssText = `
+        position:fixed; top:-100px; left:-100px;
+        background:var(--blue-bg); color:var(--blue);
+        border:1px solid var(--blue-border); border-radius:6px;
+        padding:4px 10px; font-size:12px; font-weight:600;
+        font-family:var(--font); white-space:nowrap; pointer-events:none;
+        z-index:9999;
+      `;
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, 14);
+      setTimeout(() => ghost.remove(), 0);
+    });
+    item.addEventListener('dragend', () => item.classList.remove('dragging'));
+    list.appendChild(item);
+  });
+}
+
+function openFocusViewer(note) {
+  document.getElementById('focus-notes-list').classList.add('hidden');
+  const viewer = document.getElementById('focus-note-viewer');
+  viewer.classList.add('open');
+  document.getElementById('focus-viewer-title').textContent = note.title || 'Untitled';
+  document.getElementById('focus-viewer-note-title').textContent = note.title || 'Untitled';
+  document.getElementById('focus-viewer-note-date').textContent = formatFull(note.createdAt);
+  const bodyEl = document.getElementById('focus-viewer-note-body');
+  bodyEl.innerHTML = renderMarkdown(note.body || '');
+  attachWikilinkClickHandlers(bodyEl);
+}
+
+function closeFocusViewer() {
+  document.getElementById('focus-notes-list').classList.remove('hidden');
+  document.getElementById('focus-note-viewer').classList.remove('open');
+  document.getElementById('focus-viewer-title').textContent = '';
+}
+
+function enterFocusMode() {
+  focusMode = true;
+  const overlay = document.getElementById('new-note-overlay');
+  overlay.classList.add('focus-mode');
+  document.getElementById('btn-focus-mode').classList.add('active');
+  // Prevent overlay click-to-close while in focus mode (handled separately)
+  renderFocusList('');
+}
+
+function exitFocusMode() {
+  focusMode = false;
+  const overlay = document.getElementById('new-note-overlay');
+  overlay.classList.remove('focus-mode');
+  document.getElementById('btn-focus-mode').classList.remove('active');
+  // Reset width so normal modal reopens at default size
+  document.getElementById('new-note-box').style.width = '';
+  closeFocusViewer();
+  document.getElementById('focus-search-input').value = '';
+  document.getElementById('focus-search-clear').style.display = 'none';
+}
+
+document.getElementById('btn-focus-mode').addEventListener('click', () => {
+  if (focusMode) exitFocusMode();
+  else enterFocusMode();
+});
+
+/* ── Focus mode resize handle ── */
+(function() {
+  const handle   = document.getElementById('focus-resize-handle');
+  const overlay  = document.getElementById('new-note-overlay');
+  const noteBox  = document.getElementById('new-note-box');
+  const MIN_EDITOR_PCT = 30;
+  const MAX_EDITOR_PCT = 80;
+  let dragging = false;
+  let startX = 0;
+  let startW = 0;
+
+  handle.addEventListener('mousedown', e => {
+    if (!focusMode) return;
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startW = noteBox.getBoundingClientRect().width;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const totalW = overlay.getBoundingClientRect().width;
+    const delta  = e.clientX - startX;
+    let newW     = startW + delta;
+    // Clamp between min and max
+    const minPx = totalW * (MIN_EDITOR_PCT / 100);
+    const maxPx = totalW * (MAX_EDITOR_PCT / 100);
+    newW = Math.max(minPx, Math.min(maxPx, newW));
+    const pct = (newW / totalW) * 100;
+    noteBox.style.width = pct + '%';
+    overlay.style.setProperty('--focus-editor-w', pct + '%');
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  // Touch support
+  handle.addEventListener('touchstart', e => {
+    if (!focusMode) return;
+    const touch = e.touches[0];
+    dragging = true;
+    startX = touch.clientX;
+    startW = noteBox.getBoundingClientRect().width;
+    handle.classList.add('dragging');
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const totalW = overlay.getBoundingClientRect().width;
+    const delta  = touch.clientX - startX;
+    let newW     = startW + delta;
+    const minPx  = totalW * (MIN_EDITOR_PCT / 100);
+    const maxPx  = totalW * (MAX_EDITOR_PCT / 100);
+    newW = Math.max(minPx, Math.min(maxPx, newW));
+    const pct = (newW / totalW) * 100;
+    noteBox.style.width = pct + '%';
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+  });
+})();
+
+document.getElementById('focus-back-btn').addEventListener('click', closeFocusViewer);
+
+document.getElementById('focus-search-input').addEventListener('input', function() {
+  const q = this.value;
+  document.getElementById('focus-search-clear').style.display = q ? 'flex' : 'none';
+  renderFocusList(q);
+});
+
+document.getElementById('focus-search-clear').addEventListener('click', () => {
+  document.getElementById('focus-search-input').value = '';
+  document.getElementById('focus-search-clear').style.display = 'none';
+  renderFocusList('');
+});
+
+// Prevent clicking on focus sidebar from closing the overlay
+document.getElementById('focus-sidebar').addEventListener('click', e => e.stopPropagation());
+
+// Patch closeNewNote to also exit focus mode
+const _origCloseNewNoteFocus = closeNewNote;
+closeNewNote = function() {
+  _origCloseNewNoteFocus();
+  exitFocusMode();
+};
+
+// Update focus list when allNotes changes and focus mode is active
+const _patchFocusList = () => { if (focusMode) renderFocusList(document.getElementById('focus-search-input').value); };
+
+/* ── Focus mode drag-to-insert backlink ── */
+(function() {
+  const textarea  = document.getElementById('new-note-body-input');
+  const noteBox   = document.getElementById('new-note-box');
+  let dragCounter = 0; // track enter/leave on children
+
+  // Only activate drop zone when a zettel note is being dragged
+  function isZettelDrag(e) {
+    return e.dataTransfer.types.includes('application/zettel-note') ||
+           e.dataTransfer.types.includes('text/plain');
+  }
+
+  // Insert text at a specific character index in the textarea
+  function insertAtIndex(ta, text, index) {
+    const before = ta.value.slice(0, index);
+    const after  = ta.value.slice(index);
+    // Add a space before/after if needed to avoid sticking to adjacent text
+    const needSpaceBefore = before.length > 0 && !/\s$/.test(before);
+    const needSpaceAfter  = after.length  > 0 && !/^\s/.test(after);
+    const insert = (needSpaceBefore ? ' ' : '') + text + (needSpaceAfter ? ' ' : '');
+    ta.value = before + insert + after;
+    // Place cursor right after the inserted wikilink
+    const newPos = index + insert.length;
+    ta.setSelectionRange(newPos, newPos);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    ta.focus();
+  }
+
+  // Get character index at drop point using native textarea selection
+  // The browser sets selectionStart to the drop position during a dragover/drop
+  function getCaretIndexFromPoint(ta, clientX, clientY) {
+    // caretPositionFromPoint (Firefox) or caretRangeFromPoint (Chrome/Safari)
+    // Both work on textarea's shadow text node in modern browsers
+    let idx = null;
+
+    if (document.caretPositionFromPoint) {
+      try {
+        const pos = document.caretPositionFromPoint(clientX, clientY);
+        if (pos) idx = pos.offset;
+      } catch(e) {}
+    }
+
+    if (idx === null && document.caretRangeFromPoint) {
+      try {
+        const range = document.caretRangeFromPoint(clientX, clientY);
+        if (range) idx = range.startOffset;
+      } catch(e) {}
+    }
+
+    // Best fallback: read selectionStart directly — browsers move it to the
+    // drop point during dragover, so it's accurate at drop time
+    if (idx === null || idx === 0) {
+      idx = ta.selectionStart;
+    }
+
+    return idx ?? ta.value.length;
+  }
+
+  // Drag enters the note box area
+  noteBox.addEventListener('dragenter', e => {
+    if (!focusMode || !isZettelDrag(e)) return;
+    dragCounter++;
+    noteBox.classList.add('drag-active');
+  });
+
+  noteBox.addEventListener('dragleave', e => {
+    if (!focusMode) return;
+    dragCounter--;
+    if (dragCounter <= 0) {
+      dragCounter = 0;
+      noteBox.classList.remove('drag-active');
+      textarea.classList.remove('drag-over');
+    }
+  });
+
+  // Drag over the textarea itself — let browser handle cursor positioning natively
+  textarea.addEventListener('dragover', e => {
+    if (!focusMode || !isZettelDrag(e)) return;
+    // Don't preventDefault here on the textarea — let the browser move the
+    // insertion cursor to where the mouse is (this is what sets selectionStart)
+    e.dataTransfer.dropEffect = 'copy';
+    textarea.classList.add('drag-over');
+  });
+
+  textarea.addEventListener('dragleave', e => {
+    textarea.classList.remove('drag-over');
+  });
+
+  // The actual drop
+  textarea.addEventListener('drop', e => {
+    if (!focusMode) return;
+    const noteTitle = e.dataTransfer.getData('application/zettel-note');
+    const plain     = e.dataTransfer.getData('text/plain');
+    const wikilink  = noteTitle ? `[[${noteTitle}]]` : plain;
+    if (!wikilink) return;
+
+    e.preventDefault();
+    textarea.classList.remove('drag-over');
+    noteBox.classList.remove('drag-active');
+    dragCounter = 0;
+
+    // selectionStart is now at the drop point because we let the browser
+    // handle dragover natively above — read it before doing anything else
+    const idx = textarea.selectionStart;
+    insertAtIndex(textarea, wikilink, idx);
+
+    // Sync wikilink highlight and word count
+    syncHighlight('new-note-body-input', 'hl-new-note');
+    updateWc('new-note-body-input', 'wc-new-note');
+  });
+
+  // Also allow dropping on the title input (inserts plain title, not wikilink)
+  const titleInput = document.getElementById('new-note-title-input');
+  titleInput.addEventListener('dragover', e => {
+    if (!focusMode || !isZettelDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+  titleInput.addEventListener('drop', e => {
+    if (!focusMode) return;
+    const noteTitle = e.dataTransfer.getData('application/zettel-note');
+    if (!noteTitle) return;
+    e.preventDefault();
+    // Insert wikilink at cursor in title too
+    const start = titleInput.selectionStart;
+    const before = titleInput.value.slice(0, start);
+    const after  = titleInput.value.slice(start);
+    titleInput.value = before + `[[${noteTitle}]]` + after;
+    titleInput.setSelectionRange(start + noteTitle.length + 4, start + noteTitle.length + 4);
+    titleInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+})();
 let replyTargetNote = null;
 let replyFromThread = false;
 let replyIsSubThread = false;
@@ -4004,13 +4982,26 @@ function closeWikilink() {
 }
 
 function positionPopup(textarea) {
-  // Position popup near the cursor using a temp mirror trick
-  const rect = textarea.getBoundingClientRect();
-  // Simple: appear just above or below the textarea, right-aligned
-  const popupH = 200;
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const top = spaceBelow > popupH ? rect.bottom + 4 : rect.top - popupH - 4;
-  const left = Math.min(rect.left + 16, window.innerWidth - 340);
+  const taRect = textarea.getBoundingClientRect();
+  const popupW = 300;
+  const popupH = wlPopup.offsetHeight || 220;
+  const gap    = 16;
+
+  // Anchor to the right edge of the textarea
+  let left = taRect.right + gap;
+  // If overflow on right, flip to left side of textarea
+  if (left + popupW > window.innerWidth - 8) {
+    left = taRect.left - popupW - gap;
+  }
+  left = Math.max(8, left);
+
+  // Vertically align to top of textarea, clamped to viewport
+  let top = taRect.top;
+  if (top + popupH > window.innerHeight - 8) {
+    top = window.innerHeight - popupH - 8;
+  }
+  top = Math.max(8, top);
+
   wlPopup.style.top  = top + 'px';
   wlPopup.style.left = left + 'px';
 }
