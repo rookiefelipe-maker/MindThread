@@ -938,6 +938,22 @@
   }
   .md-render .md-task.done span { color: var(--text3); text-decoration: line-through; }
 
+  /* history version cards */
+  .history-version-card {
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .history-version-card:hover { background: var(--bg3); }
+  .history-version-card.active { background: var(--blue-bg); border-color: var(--blue-border); }
+  .history-version-label { font-size: 12px; font-weight: 600; color: var(--text1); margin-bottom: 2px; }
+  .history-version-date  { font-size: 11px; color: var(--text3); }
+  .history-version-card.active .history-version-label { color: var(--blue); }
+
+  #btn-open-history:hover { color: var(--text1); background: var(--bg3); }
+
   /* tables in rendered md */
   .md-render table {
     width: 100%;
@@ -1014,7 +1030,7 @@
     border: none;
     outline: none;
     font-size: 14px;
-    color: transparent;
+    color: var(--text2);
     caret-color: var(--text1);
     font-family: var(--font);
     line-height: 1.65;
@@ -1708,7 +1724,7 @@
     border: none;
     outline: none;
     font-size: 14px;
-    color: transparent;
+    color: var(--text2);
     caret-color: var(--text1);
     font-family: var(--font);
     line-height: 1.65;
@@ -1735,7 +1751,7 @@
     font-size: 14px;
     font-family: var(--font);
     line-height: 1.65;
-    color: var(--text2);
+    color: transparent;
     border: none;
     background: transparent;
     padding: 0;
@@ -2910,6 +2926,10 @@
     </div>
     <div class="view-modal-footer">
       <button class="btn-delete" id="btn-open-delete">Delete</button>
+      <button id="btn-open-history" title="Version history" style="background:transparent;border:none;color:var(--text3);cursor:pointer;padding:4px 8px;border-radius:6px;display:flex;align-items:center;gap:5px;font-size:12px;font-family:var(--font);transition:color 0.12s,background 0.12s;margin-right:auto;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </button>
       <button class="btn-edit" id="btn-open-edit">Edit</button>
     </div>
   </div>
@@ -3155,17 +3175,56 @@ let focusMode = false;
 const DAYS   = ['M','T','W','T','F','S','S'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+const HISTORY_STORE = 'history';
+
 function openDB() {
   return new Promise((res,rej) => {
-    const req = indexedDB.open(DB_NAME, 1);
+    const req = indexedDB.open(DB_NAME, 3);
     req.onupgradeneeded = e => {
       const d = e.target.result;
       if (!d.objectStoreNames.contains(STORE)) {
         const s = d.createObjectStore(STORE, { keyPath: 'id' });
         s.createIndex('createdAt','createdAt',{unique:false});
       }
+      if (!d.objectStoreNames.contains(HISTORY_STORE)) {
+        const h = d.createObjectStore(HISTORY_STORE, { keyPath: 'hid', autoIncrement: true });
+        h.createIndex('noteId','noteId',{unique:false});
+      }
     };
     req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function saveSnapshot(note) {
+  return new Promise((res, rej) => {
+    const snap = { noteId: note.id, savedAt: Date.now(), title: note.title || '', body: note.body || '' };
+    const tx = db.transaction(HISTORY_STORE, 'readwrite');
+    tx.objectStore(HISTORY_STORE).add(snap);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+function getSnapshots(noteId) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(HISTORY_STORE, 'readonly');
+    const idx = tx.objectStore(HISTORY_STORE).index('noteId');
+    const req = idx.getAll(noteId);
+    req.onsuccess = () => res(req.result.sort((a,b) => b.savedAt - a.savedAt));
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function deleteSnapshotsFor(noteId) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(HISTORY_STORE, 'readwrite');
+    const idx = tx.objectStore(HISTORY_STORE).index('noteId');
+    const req = idx.getAllKeys(noteId);
+    req.onsuccess = () => {
+      req.result.forEach(k => tx.objectStore(HISTORY_STORE).delete(k));
+      tx.oncomplete = () => res();
+    };
     req.onerror = () => rej(req.error);
   });
 }
@@ -3745,13 +3804,15 @@ function renderConnections(note) {
     if (!seen.has(n.id)) { seen.add(n.id); allConnected.push({ note: n, type: outgoing.find(o => o.id === n.id) ? 'outgoing' : 'incoming' }); }
   });
 
+  const panel = document.getElementById('connections-panel');
   countEl.textContent = allConnected.length;
   list.innerHTML = '';
 
   if (!allConnected.length) {
-    list.innerHTML = '<div class="connections-empty">No connections</div>';
+    panel.style.display = 'none';
     return;
   }
+  panel.style.display = '';
 
   allConnected.forEach(({ note: target, type }) => {
     const card = document.createElement('div');
@@ -4114,6 +4175,8 @@ document.getElementById('btn-save-edit').addEventListener('click', async () => {
     const noteWithOldType = { ...activeNote, title: prevTitle, type: prevType };
     await deleteNoteFromVault(noteWithOldType);
   }
+  await saveSnapshot(activeNote);
+  activeNote.updatedAt = Date.now();
   await putNote(activeNote);
   await writeNoteToVault(activeNote);
   clearPendingAttachments('edit');
@@ -4192,6 +4255,7 @@ document.addEventListener('keydown', e => {
   }
 
   if (e.key !== 'Escape') return;
+  if (document.getElementById('history-overlay').style.display === 'flex') { closeHistory(); return; }
   if (document.getElementById('reply-overlay').classList.contains('open')) { closeReply(); return; }
   if (document.getElementById('thread-overlay').classList.contains('open')) { closeThread(); return; }
   if (document.getElementById('new-note-overlay').classList.contains('open')) { closeNewNote(); return; }
@@ -6646,7 +6710,133 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW error:', err));
   });
 }
+
+/* ── Version History ── */
 </script>
+
+<!-- history modal -->
+<div id="history-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+  <div style="width:900px;max-width:96vw;height:80vh;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.6);position:relative;z-index:1;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;border-bottom:1px solid var(--border);flex-shrink:0;position:relative;z-index:1;">
+      <span style="font-size:13px;font-weight:600;color:var(--text2);">Version history</span>
+      <button onclick="closeHistory()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-size:12px;font-family:var(--font);padding:4px 14px;border-radius:var(--radius-sm);position:relative;z-index:2;">Cancel</button>
+    </div>
+    <div style="display:flex;flex:1;min-height:0;">
+      <!-- left: preview -->
+      <div style="flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);min-width:0;">
+        <div style="padding:0.6rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <span id="history-preview-label" style="font-size:12px;color:var(--text3);">Current version</span>
+          <button id="btn-restore-version" style="display:none;background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:5px 14px;font-size:12px;font-weight:600;font-family:var(--font);cursor:pointer;">Restore this version</button>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:1.25rem 1.5rem;">
+          <div id="history-preview-title" style="font-size:18px;font-weight:700;color:var(--text1);letter-spacing:-0.02em;margin-bottom:0.75rem;"></div>
+          <div id="history-preview-body" class="md-render" style="font-size:14px;line-height:1.65;color:var(--text2);"></div>
+        </div>
+      </div>
+      <!-- right: version list -->
+      <div style="width:220px;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;">
+        <div id="history-list" style="display:flex;flex-direction:column;gap:4px;padding:0.75rem 0.6rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let historySelectedSnap = null;
+let historyNoteRef = null;
+
+async function openHistory() {
+  if (!activeNote) return;
+  historySelectedSnap = null;
+  historyNoteRef = activeNote;
+  document.getElementById('btn-restore-version').style.display = 'none';
+  document.getElementById('history-preview-label').textContent = 'Current version';
+  document.getElementById('history-preview-title').textContent = activeNote.title || '';
+  document.getElementById('history-preview-body').innerHTML = renderMarkdown(activeNote.body || '');
+  attachWikilinkClickHandlers(document.getElementById('history-preview-body'));
+
+  const snaps = await getSnapshots(activeNote.id);
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+
+  // Current version card (always first)
+  const currentCard = document.createElement('div');
+  currentCard.className = 'history-version-card active';
+  currentCard.innerHTML = `<div class="history-version-label">Current version</div><div class="history-version-date">${formatFull(activeNote.updatedAt || activeNote.createdAt)}</div>`;
+  currentCard.addEventListener('click', () => {
+    document.querySelectorAll('.history-version-card').forEach(c => c.classList.remove('active'));
+    currentCard.classList.add('active');
+    historySelectedSnap = null;
+    document.getElementById('btn-restore-version').style.display = 'none';
+    document.getElementById('history-preview-label').textContent = 'Current version';
+    document.getElementById('history-preview-title').textContent = activeNote.title || '';
+    document.getElementById('history-preview-body').innerHTML = renderMarkdown(activeNote.body || '');
+    attachWikilinkClickHandlers(document.getElementById('history-preview-body'));
+  });
+  list.appendChild(currentCard);
+
+  if (snaps.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:12px;color:var(--text3);padding:1rem 0.5rem;font-style:italic;';
+    empty.textContent = 'No saved versions yet. Edit and save the note to create history.';
+    list.appendChild(empty);
+  }
+
+  snaps.forEach((snap, i) => {
+    const card = document.createElement('div');
+    card.className = 'history-version-card';
+    const d = new Date(snap.savedAt);
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    card.innerHTML = `<div class="history-version-label">${dateStr}</div><div class="history-version-date">${timeStr}</div>`;
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.history-version-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      historySelectedSnap = snap;
+      document.getElementById('btn-restore-version').style.display = '';
+      document.getElementById('history-preview-label').textContent = `Version from ${dateStr} at ${timeStr}`;
+      document.getElementById('history-preview-title').textContent = snap.title || '';
+      document.getElementById('history-preview-body').innerHTML = renderMarkdown(snap.body || '');
+      attachWikilinkClickHandlers(document.getElementById('history-preview-body'));
+    });
+    list.appendChild(card);
+  });
+
+  document.getElementById('history-overlay').style.display = 'flex';
+}
+
+function closeHistory() {
+  document.getElementById('history-overlay').style.display = 'none';
+  historySelectedSnap = null;
+  historyNoteRef = null;
+}
+
+document.getElementById('btn-open-history').addEventListener('click', openHistory);
+document.getElementById('history-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('history-overlay')) closeHistory();
+});
+
+document.getElementById('btn-restore-version').addEventListener('click', async () => {
+  if (!historySelectedSnap || !historyNoteRef) return;
+  const note = allNotes.find(n => n.id === historyNoteRef.id) || historyNoteRef;
+  // Save current state as snapshot before restoring
+  await saveSnapshot(note);
+  note.title = historySelectedSnap.title;
+  note.body  = historySelectedSnap.body;
+  note.updatedAt = Date.now();
+  await putNote(note);
+  try { await writeNoteToVault(note); } catch(e) { /* vault optional */ }
+  allNotes = await getAllNotes();
+  activeNote = allNotes.find(n => n.id === note.id) || note;
+  renderFeed(allNotes);
+  buildCalendar(allNotes);
+  closeHistory();
+  openView(activeNote);
+  showToast('Version restored');
+});
+/* ────────────────────────────────────────────────── */
+</script>
+
 
 </body>
 </html>
