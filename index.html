@@ -991,6 +991,136 @@
   }
   #edit-modal.open { display: flex; }
 
+  /* ── Edit Focus Mode ── */
+  #modal-overlay.edit-focus-mode {
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(16px);
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 0;
+    flex-direction: row;
+  }
+  #modal-overlay.edit-focus-mode #edit-modal {
+    width: var(--edit-focus-editor-w, 62%);
+    max-width: none;
+    max-height: none;
+    height: 100vh;
+    border-radius: 0;
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    flex-shrink: 0;
+    transition: none;
+  }
+  #modal-overlay.edit-focus-mode #edit-modal .edit-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+  #modal-overlay.edit-focus-mode #edit-modal #editor-area-edit {
+    flex: 1;
+    min-height: 0;
+  }
+  #modal-overlay.edit-focus-mode #edit-modal #editor-area-edit .editor-pane {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  #modal-overlay.edit-focus-mode #edit-modal #editor-area-edit .hl-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  #modal-overlay.edit-focus-mode #edit-modal #editor-area-edit textarea {
+    flex: 1;
+    min-height: 0;
+    resize: none;
+  }
+  /* view-modal hidden in edit focus mode */
+  #modal-overlay.edit-focus-mode #view-modal {
+    display: none !important;
+  }
+
+  /* Edit focus sidebar */
+  #edit-focus-sidebar {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  #modal-overlay.edit-focus-mode #edit-focus-sidebar {
+    display: flex;
+  }
+
+  /* Edit focus resize handle */
+  #edit-focus-resize-handle {
+    display: none;
+    width: 8px;
+    height: 100vh;
+    flex-shrink: 0;
+    cursor: col-resize;
+    position: relative;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    transition: background 0.15s;
+  }
+  #edit-focus-resize-handle:hover,
+  #edit-focus-resize-handle.dragging {
+    background: var(--blue-bg);
+  }
+  #edit-focus-resize-grip {
+    width: 2px;
+    height: 40px;
+    border-radius: 2px;
+    background: var(--border2);
+    transition: background 0.15s, height 0.15s;
+    pointer-events: none;
+  }
+  #edit-focus-resize-handle:hover #edit-focus-resize-grip,
+  #edit-focus-resize-handle.dragging #edit-focus-resize-grip {
+    background: var(--blue);
+    height: 60px;
+  }
+  #modal-overlay.edit-focus-mode #edit-focus-resize-handle {
+    display: flex;
+  }
+
+  /* Edit focus drop hint */
+  #edit-focus-drop-hint {
+    display: none;
+    position: absolute;
+    bottom: 56px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--blue-bg);
+    color: var(--blue);
+    border: 1px solid var(--blue-border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-family: var(--font);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 20;
+    letter-spacing: 0.01em;
+  }
+  #edit-modal { position: relative; }
+  #edit-modal.drag-active #edit-focus-drop-hint { display: block; }
+
+  /* Drop zone highlight on edit textarea */
+  #edit-body.drag-over {
+    background: rgba(26,132,212,0.06) !important;
+    outline: 2px dashed var(--blue-border) !important;
+    outline-offset: -2px;
+    border-radius: 6px;
+  }
+
   .edit-header {
     display: flex;
     align-items: center;
@@ -2971,6 +3101,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
         <button class="preview-toggle-btn" data-editor="edit" title="Preview" style="margin-left:auto;">Preview</button>
+        <button class="focus-mode-btn" id="btn-edit-focus-mode" title="Focus mode  ⇧⌥X">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          Focus
+        </button>
       </div>
       <div class="editor-area" id="editor-area-edit">
         <div class="editor-pane">
@@ -2987,6 +3121,33 @@
       <span class="modal-wc" id="wc-edit">0 words</span>
       <button class="btn-cancel" id="btn-cancel-edit">Cancel</button>
       <button class="btn-save-edit" id="btn-save-edit">Save</button>
+    </div>
+    <div id="edit-focus-drop-hint">Suelta para insertar como [[backlink]]</div>
+  </div>
+
+  <!-- edit focus mode resize handle -->
+  <div id="edit-focus-resize-handle">
+    <div id="edit-focus-resize-grip"></div>
+  </div>
+
+  <!-- edit focus mode sidebar -->
+  <div id="edit-focus-sidebar">
+    <div id="edit-focus-search-wrap" style="display:flex;align-items:center;gap:8px;padding:0.85rem 1rem;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:2;flex-shrink:0;">
+      <span style="color:var(--text3);font-size:14px;flex-shrink:0;line-height:1;">⌕</span>
+      <input type="text" id="edit-focus-search-input" placeholder="Search notes..." autocomplete="off" spellcheck="false" style="flex:1;background:transparent;border:none;outline:none;font-size:13px;color:var(--text1);font-family:var(--font);letter-spacing:-0.01em;" />
+      <button id="edit-focus-search-clear" title="Clear" style="display:none;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:13px;width:22px;height:22px;display:none;align-items:center;justify-content:center;border-radius:50%;transition:background 0.12s,color 0.12s;flex-shrink:0;">✕</button>
+    </div>
+    <div id="edit-focus-notes-list" style="flex:1;overflow-y:auto;padding:0.5rem 0;"></div>
+    <div id="edit-focus-note-viewer" style="display:none;flex-direction:column;height:100%;overflow:hidden;">
+      <div class="focus-viewer-header">
+        <button class="focus-back-btn" id="edit-focus-back-btn" title="Back to notes">←</button>
+        <span class="focus-viewer-title" id="edit-focus-viewer-title"></span>
+      </div>
+      <div class="focus-viewer-body">
+        <div class="focus-viewer-note-title" id="edit-focus-viewer-note-title"></div>
+        <div class="focus-viewer-note-date" id="edit-focus-viewer-note-date"></div>
+        <div class="focus-viewer-note-body md-render" id="edit-focus-viewer-note-body"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -4193,9 +4354,11 @@ document.getElementById('btn-save-edit').addEventListener('click', async () => {
     const rootNote = editFromThreadNote;
     editFromThread = false;
     editFromThreadNote = null;
+    if (editFocusMode) exitEditFocusMode();
     closeModal();
     openThread(allNotes.find(n => n.id === rootNote.id) || rootNote);
   } else {
+    if (editFocusMode) exitEditFocusMode();
     openView(activeNote);
   }
 });
@@ -4966,6 +5129,317 @@ const _patchFocusList = () => { if (focusMode) renderFocusList(document.getEleme
     titleInput.dispatchEvent(new Event('input', { bubbles: true }));
   });
 })();
+/* ══════════════════════════════════════════════════════════
+   Edit Focus Mode
+   ══════════════════════════════════════════════════════════ */
+let editFocusMode = false;
+
+function renderEditFocusList(query) {
+  const list = document.getElementById('edit-focus-notes-list');
+  let notes = allNotes.slice();
+  if (query && query.trim()) {
+    const q = query.trim().toLowerCase();
+    notes = notes.filter(n =>
+      (n.title || '').toLowerCase().includes(q) ||
+      (n.body  || '').toLowerCase().includes(q)
+    );
+  }
+  list.innerHTML = '';
+  if (!notes.length) {
+    list.innerHTML = `<div style="padding:2rem 1rem;text-align:center;color:var(--text3);font-size:13px;font-style:italic;">No notes found</div>`;
+    return;
+  }
+  notes.forEach(n => {
+    const item = document.createElement('div');
+    item.className = 'focus-note-item';
+    item.dataset.id = n.id;
+    item.draggable = true;
+    item.dataset.noteTitle = n.title || 'Untitled';
+    const preview = (n.body || '').replace(/[#*`>=\-]/g, '').slice(0, 90).trim();
+    item.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="focus-drag-handle" title="Drag to insert as backlink">⠿</span>
+        <div class="focus-note-title" style="flex:1;">${esc(n.title || 'Untitled')}</div>
+      </div>
+      <div class="focus-note-meta">${formatShort(n.createdAt)}</div>
+      ${preview ? `<div class="focus-note-preview">${esc(preview)}</div>` : ''}
+    `;
+    item.addEventListener('click', () => openEditFocusViewer(n));
+    // drag events
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', `[[${n.title || 'Untitled'}]]`);
+      e.dataTransfer.setData('application/zettel-note', n.title || 'Untitled');
+      e.dataTransfer.effectAllowed = 'copy';
+      item.classList.add('dragging');
+      const ghost = document.createElement('div');
+      ghost.textContent = `[[${n.title || 'Untitled'}]]`;
+      ghost.style.cssText = `
+        position:fixed; top:-100px; left:-100px;
+        background:var(--blue-bg); color:var(--blue);
+        border:1px solid var(--blue-border); border-radius:6px;
+        padding:4px 10px; font-size:12px; font-weight:600;
+        font-family:var(--font); white-space:nowrap; pointer-events:none;
+        z-index:9999;
+      `;
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, 14);
+      setTimeout(() => ghost.remove(), 0);
+    });
+    item.addEventListener('dragend', () => item.classList.remove('dragging'));
+    list.appendChild(item);
+  });
+}
+
+function openEditFocusViewer(note) {
+  document.getElementById('edit-focus-notes-list').style.display = 'none';
+  const viewer = document.getElementById('edit-focus-note-viewer');
+  viewer.style.display = 'flex';
+  document.getElementById('edit-focus-viewer-title').textContent = note.title || 'Untitled';
+  document.getElementById('edit-focus-viewer-note-title').textContent = note.title || 'Untitled';
+  document.getElementById('edit-focus-viewer-note-date').textContent = formatFull(note.createdAt);
+  const bodyEl = document.getElementById('edit-focus-viewer-note-body');
+  bodyEl.innerHTML = renderMarkdown(note.body || '');
+  attachWikilinkClickHandlers(bodyEl);
+}
+
+function closeEditFocusViewer() {
+  document.getElementById('edit-focus-notes-list').style.display = '';
+  document.getElementById('edit-focus-note-viewer').style.display = 'none';
+  document.getElementById('edit-focus-viewer-title').textContent = '';
+}
+
+function enterEditFocusMode() {
+  editFocusMode = true;
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.add('edit-focus-mode');
+  document.getElementById('btn-edit-focus-mode').classList.add('active');
+  renderEditFocusList('');
+}
+
+function exitEditFocusMode() {
+  editFocusMode = false;
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.remove('edit-focus-mode');
+  document.getElementById('btn-edit-focus-mode').classList.remove('active');
+  document.getElementById('edit-modal').style.width = '';
+  overlay.style.removeProperty('--edit-focus-editor-w');
+  closeEditFocusViewer();
+  document.getElementById('edit-focus-search-input').value = '';
+  document.getElementById('edit-focus-search-clear').style.display = 'none';
+}
+
+document.getElementById('btn-edit-focus-mode').addEventListener('click', () => {
+  if (editFocusMode) exitEditFocusMode();
+  else enterEditFocusMode();
+});
+
+// Patch closeEdit to also exit edit focus mode
+const _origCloseEditFocus = closeEdit;
+closeEdit = function() {
+  if (editFocusMode) exitEditFocusMode();
+  _origCloseEditFocus();
+};
+
+// Patch openEdit to reset edit focus state
+const _origOpenEditFocus = openEdit;
+openEdit = function() {
+  _origOpenEditFocus();
+  // If somehow focus was left on, clean it
+  if (editFocusMode) exitEditFocusMode();
+};
+
+/* ── Edit focus mode resize handle ── */
+(function() {
+  const handle  = document.getElementById('edit-focus-resize-handle');
+  const overlay = document.getElementById('modal-overlay');
+  const editBox = document.getElementById('edit-modal');
+  const MIN_EDITOR_PCT = 30;
+  const MAX_EDITOR_PCT = 80;
+  let dragging = false;
+  let startX = 0;
+  let startW = 0;
+
+  handle.addEventListener('mousedown', e => {
+    if (!editFocusMode) return;
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startW = editBox.getBoundingClientRect().width;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const totalW = overlay.getBoundingClientRect().width;
+    const delta  = e.clientX - startX;
+    let newW     = startW + delta;
+    const minPx  = totalW * (MIN_EDITOR_PCT / 100);
+    const maxPx  = totalW * (MAX_EDITOR_PCT / 100);
+    newW = Math.max(minPx, Math.min(maxPx, newW));
+    const pct = (newW / totalW) * 100;
+    editBox.style.width = pct + '%';
+    overlay.style.setProperty('--edit-focus-editor-w', pct + '%');
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+
+  // Touch support
+  handle.addEventListener('touchstart', e => {
+    if (!editFocusMode) return;
+    const touch = e.touches[0];
+    dragging = true;
+    startX = touch.clientX;
+    startW = editBox.getBoundingClientRect().width;
+    handle.classList.add('dragging');
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const touch = e.touches[0];
+    const totalW = overlay.getBoundingClientRect().width;
+    const delta  = touch.clientX - startX;
+    let newW     = startW + delta;
+    const minPx  = totalW * (MIN_EDITOR_PCT / 100);
+    const maxPx  = totalW * (MAX_EDITOR_PCT / 100);
+    newW = Math.max(minPx, Math.min(maxPx, newW));
+    const pct = (newW / totalW) * 100;
+    editBox.style.width = pct + '%';
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+  });
+})();
+
+document.getElementById('edit-focus-back-btn').addEventListener('click', closeEditFocusViewer);
+
+document.getElementById('edit-focus-search-input').addEventListener('input', function() {
+  const q = this.value;
+  document.getElementById('edit-focus-search-clear').style.display = q ? 'flex' : 'none';
+  renderEditFocusList(q);
+});
+
+document.getElementById('edit-focus-search-clear').addEventListener('click', () => {
+  document.getElementById('edit-focus-search-input').value = '';
+  document.getElementById('edit-focus-search-clear').style.display = 'none';
+  renderEditFocusList('');
+});
+
+// Prevent clicking on sidebar from closing the overlay
+document.getElementById('edit-focus-sidebar').addEventListener('click', e => e.stopPropagation());
+
+/* ── Edit focus mode drag-to-insert backlink ── */
+(function() {
+  const textarea  = document.getElementById('edit-body');
+  const editBox   = document.getElementById('edit-modal');
+  let dragCounter = 0;
+
+  function isZettelDrag(e) {
+    return e.dataTransfer.types.includes('application/zettel-note') ||
+           e.dataTransfer.types.includes('text/plain');
+  }
+
+  function insertAtIndex(ta, text, index) {
+    const before = ta.value.slice(0, index);
+    const after  = ta.value.slice(index);
+    const needSpaceBefore = before.length > 0 && !/\s$/.test(before);
+    const needSpaceAfter  = after.length  > 0 && !/^\s/.test(after);
+    const insert = (needSpaceBefore ? ' ' : '') + text + (needSpaceAfter ? ' ' : '');
+    ta.value = before + insert + after;
+    const newPos = index + insert.length;
+    ta.setSelectionRange(newPos, newPos);
+    ta.dispatchEvent(new Event('input', { bubbles: true }));
+    ta.focus();
+  }
+
+  editBox.addEventListener('dragenter', e => {
+    if (!editFocusMode || !isZettelDrag(e)) return;
+    dragCounter++;
+    editBox.classList.add('drag-active');
+  });
+
+  editBox.addEventListener('dragleave', e => {
+    if (!editFocusMode) return;
+    dragCounter--;
+    if (dragCounter <= 0) {
+      dragCounter = 0;
+      editBox.classList.remove('drag-active');
+      textarea.classList.remove('drag-over');
+    }
+  });
+
+  textarea.addEventListener('dragover', e => {
+    if (!editFocusMode || !isZettelDrag(e)) return;
+    e.dataTransfer.dropEffect = 'copy';
+    textarea.classList.add('drag-over');
+  });
+
+  textarea.addEventListener('dragleave', () => {
+    textarea.classList.remove('drag-over');
+  });
+
+  textarea.addEventListener('drop', e => {
+    if (!editFocusMode) return;
+    const noteTitle = e.dataTransfer.getData('application/zettel-note');
+    const plain     = e.dataTransfer.getData('text/plain');
+    const wikilink  = noteTitle ? `[[${noteTitle}]]` : plain;
+    if (!wikilink) return;
+
+    e.preventDefault();
+    textarea.classList.remove('drag-over');
+    editBox.classList.remove('drag-active');
+    dragCounter = 0;
+
+    const idx = textarea.selectionStart;
+    insertAtIndex(textarea, wikilink, idx);
+    syncHighlight('edit-body', 'hl-edit');
+    updateWc('edit-body', 'wc-edit');
+  });
+
+  // Also allow dropping on the title input
+  const titleInput = document.getElementById('edit-title');
+  titleInput.addEventListener('dragover', e => {
+    if (!editFocusMode || !isZettelDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+  titleInput.addEventListener('drop', e => {
+    if (!editFocusMode) return;
+    const noteTitle = e.dataTransfer.getData('application/zettel-note');
+    if (!noteTitle) return;
+    e.preventDefault();
+    const start = titleInput.selectionStart;
+    const before = titleInput.value.slice(0, start);
+    const after  = titleInput.value.slice(start);
+    titleInput.value = before + `[[${noteTitle}]]` + after;
+    titleInput.setSelectionRange(start + noteTitle.length + 4, start + noteTitle.length + 4);
+    titleInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+})();
+
+/* ── Keyboard shortcut: ⇧⌥X → toggle edit focus mode ── */
+document.addEventListener('keydown', e => {
+  if (e.shiftKey && e.altKey && e.code === 'KeyX') {
+    if (document.getElementById('edit-modal').classList.contains('open')) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (editFocusMode) exitEditFocusMode(); else enterEditFocusMode();
+    }
+  }
+}, true);
+
+/* ═══════════════════════════════════════════════════════ */
+
 let replyTargetNote = null;
 let replyFromThread = false;
 let replyIsSubThread = false;
