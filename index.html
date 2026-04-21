@@ -616,6 +616,21 @@
     text-overflow: ellipsis;
   }
 
+  .modal-nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+    transition: color 0.12s, background 0.12s;
+    flex-shrink: 0;
+  }
+  .modal-nav-btn:hover:not(:disabled) { color: var(--text1); background: var(--bg3); }
+  .modal-nav-btn:disabled { opacity: 0.2; cursor: default; }
+  .modal-nav-btn svg { width: 16px; height: 16px; }
+
   /* view modal footer with actions */
   .view-modal-footer {
     display: flex;
@@ -2442,9 +2457,136 @@
     gap: 18px;
   }
 
+  /* ── Peek Preview popup ── */
+  /* ── Peek Preview popup ── */
+  #peek-popup {
+    position: fixed;
+    z-index: 99999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    width: 520px;
+    filter: drop-shadow(0 12px 40px rgba(0,0,0,0.7));
+  }
+  #peek-popup.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  /* Note preview */
+  #peek-note {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.1rem 1.1rem;
+    max-height: 320px;
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  #peek-note::-webkit-scrollbar { width: 3px; }
+  #peek-note::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  #peek-note.active { display: flex; }
+  .peek-note-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text1);
+    letter-spacing: -0.01em;
+    flex-shrink: 0;
+  }
+  .peek-note-date {
+    font-size: 11px;
+    color: var(--text3);
+    flex-shrink: 0;
+    margin-bottom: 0.3rem;
+  }
+  .peek-note-body {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.65;
+  }
+  /* Web reader panel */
+  #peek-web {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    max-height: 420px;
+  }
+  #peek-web.active { display: flex; }
+  #peek-web-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+    flex-shrink: 0;
+  }
+  #peek-web-url {
+    flex: 1;
+    font-size: 11.5px;
+    color: var(--text2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font);
+  }
+  #peek-web-open {
+    background: var(--blue-bg);
+    border: 1px solid var(--blue-border);
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: var(--font);
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+  #peek-web-open:hover { opacity: 0.75; }
+  #peek-web-content {
+    padding: 0.9rem 1rem 1rem;
+    overflow-y: auto;
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.65;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  #peek-web-content::-webkit-scrollbar { width: 3px; }
+  #peek-web-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
 </style>
 </head>
 <body>
+
+<!-- Peek Preview popup (⌘ + hover) -->
+<div id="peek-popup" role="tooltip" aria-hidden="true">
+  <!-- Note preview panel -->
+  <div id="peek-note">
+    <div class="peek-note-title" id="peek-note-title"></div>
+    <div class="peek-note-date" id="peek-note-date"></div>
+    <div class="peek-note-body md-render" id="peek-note-body"></div>
+  </div>
+  <!-- Web reader panel -->
+  <div id="peek-web">
+    <div id="peek-web-bar">
+      <span>🌐</span>
+      <span id="peek-web-url"></span>
+      <a id="peek-web-open" target="_blank" rel="noopener">Open ↗</a>
+    </div>
+    <div id="peek-web-content">
+      <div class="peek-note-title" id="peek-web-title"></div>
+      <div id="peek-web-body"></div>
+    </div>
+  </div>
+</div>
 
 <!-- lightbox -->
 <div id="lightbox"><img id="lightbox-img" src="" alt=""></div>
@@ -2676,6 +2818,12 @@
   <div id="view-modal">
     <div class="modal-header">
       <span class="modal-header-title" id="modal-header-title"></span>
+      <button class="modal-nav-btn" id="btn-nav-prev" title="Nota más reciente (←)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="modal-nav-btn" id="btn-nav-next" title="Nota más antigua (→)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
       <button class="btn-close" id="btn-close-modal">✕</button>
     </div>
     <!-- find-in-note bar -->
@@ -3773,6 +3921,7 @@ openView = function(note) {
   document.getElementById('find-bar').classList.remove('open');
   document.getElementById('find-input').value = '';
   _origOpenView(note);
+  updateNavButtons();
 };
 
 let editFromThread = false;
@@ -3809,6 +3958,31 @@ function closeEdit() {
 }
 
 document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+
+// ── view modal note navigation ──
+function getNavNotes() {
+  return allNotes.filter(n => !n.parentId).slice().sort((a, b) => b.createdAt - a.createdAt);
+}
+function updateNavButtons() {
+  if (!activeNote) return;
+  const notes = getNavNotes();
+  const idx = notes.findIndex(n => n.id === activeNote.id);
+  document.getElementById('btn-nav-prev').disabled = idx <= 0;
+  document.getElementById('btn-nav-next').disabled = idx < 0 || idx >= notes.length - 1;
+}
+document.getElementById('btn-nav-prev').addEventListener('click', () => {
+  if (!activeNote) return;
+  const notes = getNavNotes();
+  const idx = notes.findIndex(n => n.id === activeNote.id);
+  if (idx > 0) openView(notes[idx - 1]);
+});
+document.getElementById('btn-nav-next').addEventListener('click', () => {
+  if (!activeNote) return;
+  const notes = getNavNotes();
+  const idx = notes.findIndex(n => n.id === activeNote.id);
+  if (idx >= 0 && idx < notes.length - 1) openView(notes[idx + 1]);
+});
+// ───────────────────────────────────
 document.getElementById('btn-open-edit').addEventListener('click', openEdit);
 document.getElementById('btn-close-edit').addEventListener('click', closeEdit);
 document.getElementById('btn-cancel-edit').addEventListener('click', closeEdit);
@@ -3893,15 +4067,6 @@ document.addEventListener('keydown', e => {
     if (activeNote) { openThread(activeNote); closeModal(); }
     return;
   }
-  // Shift+Option+Z → toggle Focus mode (only when new-note modal is open)
-  // Use e.code (physical key) instead of e.key which changes with modifiers on macOS
-  if (e.shiftKey && e.altKey && e.code === 'KeyZ') {
-    if (document.getElementById('new-note-overlay').classList.contains('open')) {
-      e.preventDefault();
-      if (focusMode) exitFocusMode(); else enterFocusMode();
-      return;
-    }
-  }
   // Cmd/Ctrl+Enter → save in edit modal
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
     if (document.getElementById('edit-modal').classList.contains('open')) {
@@ -3915,6 +4080,26 @@ document.addEventListener('keydown', e => {
     }
   }
 
+  // Arrow key navigation in view modal (← newer, → older)
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    const overlay = document.getElementById('modal-overlay');
+    const editOpen = document.getElementById('edit-modal').classList.contains('open');
+    const findOpen = document.getElementById('find-bar').classList.contains('open');
+    if (overlay.classList.contains('open') && !editOpen && !findOpen && activeNote) {
+      e.preventDefault();
+      // Sort all root notes by createdAt desc (newest first)
+      const rootNotes = allNotes.filter(n => !n.parentId).slice().sort((a, b) => b.createdAt - a.createdAt);
+      const idx = rootNotes.findIndex(n => n.id === activeNote.id);
+      if (idx === -1) return;
+      // ← → newer (lower index) : → → older (higher index)
+      const nextIdx = e.key === 'ArrowLeft' ? idx - 1 : idx + 1;
+      if (nextIdx >= 0 && nextIdx < rootNotes.length) {
+        openView(rootNotes[nextIdx]);
+      }
+      return;
+    }
+  }
+
   if (e.key !== 'Escape') return;
   if (document.getElementById('reply-overlay').classList.contains('open')) { closeReply(); return; }
   if (document.getElementById('thread-overlay').classList.contains('open')) { closeThread(); return; }
@@ -3925,7 +4110,19 @@ document.addEventListener('keydown', e => {
   }
   if (document.getElementById('edit-modal').classList.contains('open')) { closeEdit(); return; }
   if (document.getElementById('modal-overlay').classList.contains('open')) { closeModal(); return; }
-});
+}, true); // ← capture phase: intercepts before textarea, so ⇧⌥Z always works
+
+// Shift+Option+Z → toggle Focus mode (capture phase listener above handles Cmd/Ctrl/Escape)
+// This dedicated capture-phase listener ensures ⇧⌥Z is intercepted even when textarea has focus
+document.addEventListener('keydown', e => {
+  if (e.shiftKey && e.altKey && e.code === 'KeyZ') {
+    if (document.getElementById('new-note-overlay').classList.contains('open')) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (focusMode) exitFocusMode(); else enterFocusMode();
+    }
+  }
+}, true);
 
 /* ── spotlight ── */
 let spActiveIdx = -1;
@@ -5876,6 +6073,243 @@ document.addEventListener('keydown', e => {
     document.getElementById('lightbox').classList.remove('open');
   }
 });
+
+/* ── Peek Preview (⌘/Ctrl + hover) ── */
+(function() {
+  const popup      = document.getElementById('peek-popup');
+  const notePanel  = document.getElementById('peek-note');
+  const noteTitle  = document.getElementById('peek-note-title');
+  const noteDate   = document.getElementById('peek-note-date');
+  const noteBody   = document.getElementById('peek-note-body');
+  const webPanel   = document.getElementById('peek-web');
+  const webUrl     = document.getElementById('peek-web-url');
+  const webOpen    = document.getElementById('peek-web-open');
+  const iframe     = document.getElementById('peek-iframe');
+
+  const DELAY  = 180;
+  const GAP    = 18;
+  const POP_W  = 520;
+
+  let peekTimer     = null;
+  let cmdDown       = false;
+  let currentTarget = null;
+  let pinned        = false;
+
+  function isCmdDown(e) { return e.metaKey || e.ctrlKey; }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Meta' || e.key === 'Control') cmdDown = true;
+  }, true);
+  window.addEventListener('blur', () => { if (!pinned) hidePeek(); });
+
+  function hidePeek() {
+    clearTimeout(peekTimer);
+    peekTimer = null;
+    currentTarget = null;
+    pinned = false;
+    popup.classList.remove('visible');
+    popup.setAttribute('aria-hidden', 'true');
+  }
+
+  function positionPopup(mouseX, mouseY) {
+    const popH = popup.offsetHeight || 420;
+    const vw   = window.innerWidth;
+    const vh   = window.innerHeight;
+
+    // prefer right of cursor, flip left if needed
+    let x = mouseX + GAP;
+    if (x + POP_W > vw - 8) x = mouseX - POP_W - GAP;
+    x = Math.max(8, x);
+
+    // prefer below cursor, flip up if needed
+    let y = mouseY + GAP;
+    if (y + popH > vh - 8) y = mouseY - popH - GAP;
+    y = Math.max(8, y);
+
+    popup.style.left = x + 'px';
+    popup.style.top  = y + 'px';
+  }
+
+  function showMode(mode) {
+    notePanel.classList.toggle('active', mode === 'note');
+    webPanel.classList.toggle('active',  mode === 'web');
+  }
+
+  function showNote(note, mouseX, mouseY) {
+    showMode('note');
+    noteTitle.textContent = note.title || 'Untitled';
+    noteDate.textContent  = note.createdAt ? new Date(note.createdAt).toLocaleDateString('en-US', { day:'numeric', month:'short', year:'numeric' }) : '';
+    noteBody.innerHTML    = renderMarkdown(note.body || '');
+    attachWikilinkClickHandlers(noteBody);
+    popup.classList.add('visible');
+    popup.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => positionPopup(mouseX, mouseY));
+  }
+
+  // ── Web reader mode ──
+  const webCache = new Map(); // url → { title, html }
+
+  function mdToHtml(md) {
+    // Minimal markdown → html for jina output
+    return md
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      // headings
+      .replace(/^#{1} (.+)$/gm, '<strong style="font-size:15px;color:var(--text1);display:block;margin:0.7rem 0 0.2rem">$1</strong>')
+      .replace(/^#{2} (.+)$/gm, '<strong style="color:var(--text1);display:block;margin:0.55rem 0 0.15rem">$1</strong>')
+      .replace(/^#{3,} (.+)$/gm, '<span style="color:var(--text2);font-weight:600;display:block;margin:0.4rem 0 0.1rem">$1</span>')
+      // bold/italic
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // links → just show text
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // list items
+      .replace(/^[-*] (.+)$/gm, '<span style="display:block;padding-left:1rem;color:var(--text2)">· $1</span>')
+      // paragraphs (blank-line separated blocks)
+      .split(/\n{2,}/)
+      .map(block => {
+        block = block.trim();
+        if (!block) return '';
+        if (block.startsWith('<')) return block; // already html
+        return `<p style="margin:0 0 0.45rem;color:var(--text2)">${block.replace(/\n/g,' ')}</p>`;
+      })
+      .join('');
+  }
+
+  async function showWeb(url, mouseX, mouseY) {
+    showMode('web');
+    webUrl.textContent = url;
+    webOpen.href       = url;
+
+    const webBody  = document.getElementById('peek-web-body');
+    const webTitle = document.getElementById('peek-web-title');
+
+    // Serve from cache instantly
+    if (webCache.has(url)) {
+      const cached = webCache.get(url);
+      webTitle.textContent = cached.title;
+      webBody.innerHTML    = cached.html;
+      popup.classList.add('visible');
+      popup.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(() => positionPopup(mouseX, mouseY));
+      return;
+    }
+
+    // Show popup with loading state
+    webTitle.textContent = '';
+    webBody.innerHTML    = '<span style="color:var(--text3);font-style:italic">Loading…</span>';
+    popup.classList.add('visible');
+    popup.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => positionPopup(mouseX, mouseY));
+
+    try {
+      // jina.ai reader: returns clean markdown, no CORS issues
+      const jinaUrl = `https://r.jina.ai/${url}`;
+      const res = await fetch(jinaUrl, {
+        headers: { 'Accept': 'text/plain', 'X-Return-Format': 'markdown' },
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!res.ok) throw new Error('fetch failed');
+      const md = await res.text();
+
+      // Extract title from first # heading or first line
+      const titleMatch = md.match(/^#\s+(.+)$/m) || md.match(/^Title:\s*(.+)$/m);
+      const title = titleMatch ? titleMatch[1].trim() : new URL(url).hostname;
+
+      // Remove jina metadata header (Title:/URL:/etc lines at top)
+      const body = md.replace(/^(Title|URL|Published|Author|Description):.*$/gm, '').trim();
+
+      const html = mdToHtml(body);
+      webCache.set(url, { title, html });
+      webTitle.textContent = title;
+      webBody.innerHTML    = html;
+      requestAnimationFrame(() => positionPopup(mouseX, mouseY));
+    } catch (err) {
+      webBody.innerHTML = `<span style="color:var(--text3);font-style:italic">Could not load — </span><a href="${url}" target="_blank" rel="noopener" style="color:var(--blue);font-size:12px">open in browser ↗</a>`;
+    }
+  }
+
+  // Follow cursor while popup is open and NOT pinned
+  document.addEventListener('mousemove', e => {
+    if (pinned || !cmdDown || !popup.classList.contains('visible')) return;
+    positionPopup(e.clientX, e.clientY);
+  });
+
+  function tryPeek(e, target, fn) {
+    if (target === currentTarget) return;
+    currentTarget = target;
+    clearTimeout(peekTimer);
+    peekTimer = setTimeout(() => fn(e.clientX, e.clientY), DELAY);
+  }
+
+  // ── Wikilinks in rendered markdown ──
+  document.addEventListener('mouseover', e => {
+    if (!isCmdDown(e)) return;
+    const wl = e.target.closest('.wikilink');
+    if (!wl) return;
+    tryPeek(e, wl, (x, y) => {
+      const raw  = wl.textContent.replace(/^\[\[|\]\]$/g, '').trim();
+      const note = allNotes.find(n => (n.title || '').toLowerCase() === raw.toLowerCase());
+      if (note) showNote(note, x, y);
+    });
+  });
+
+  // ── Feed note cards ──
+  document.addEventListener('mouseover', e => {
+    if (!isCmdDown(e)) return;
+    if (e.target.closest('.card-action-btn, .card-pin-btn, .card-thread-badge')) return;
+    const card = e.target.closest('#feed .note-card, #pinned-area .note-card');
+    if (!card) return;
+    tryPeek(e, card, (x, y) => {
+      const note = allNotes.find(n => n.id === card.dataset.id);
+      if (note) showNote(note, x, y);
+    });
+  });
+
+  // ── Web links ──
+  document.addEventListener('mouseover', e => {
+    if (!isCmdDown(e)) return;
+    const a = e.target.closest('a[href]');
+    if (!a || !/^https?:\/\//.test(a.href)) return;
+    tryPeek(e, a, (x, y) => showWeb(a.href, x, y));
+  });
+
+  // ── Soltar ⌘ → cierra solo si no está fijado ──
+  document.addEventListener('keyup', e => {
+    if (e.key === 'Meta' || e.key === 'Control') {
+      cmdDown = false;
+      if (!pinned) hidePeek();
+    }
+  }, true);
+
+  // ── Escape cierra siempre ──
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && popup.classList.contains('visible')) {
+      e.stopPropagation();
+      hidePeek();
+    }
+  }, true);
+
+  // ── Click fuera del popup → cierra ──
+  document.addEventListener('mousedown', e => {
+    if (pinned && !popup.contains(e.target)) hidePeek();
+  }, true);
+
+  // ── Después de 1s visible → se fija (no depende del cursor ni de ⌘) ──
+  let pinTimer = null;
+  function schedulePinAfterShow() {
+    clearTimeout(pinTimer);
+    pinTimer = setTimeout(() => {
+      if (popup.classList.contains('visible')) pinned = true;
+    }, 1000);
+  }
+
+  // Patch showNote y showWeb para llamar schedulePinAfterShow
+  const _showNote = showNote;
+  showNote = function(...args) { _showNote(...args); schedulePinAfterShow(); };
+  const _showWeb = showWeb;
+  showWeb = function(...args) { _showWeb(...args); schedulePinAfterShow(); };
+
+})();
 
 /* ── init ── */
 const now = new Date();
