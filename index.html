@@ -980,8 +980,9 @@
   /* edit modal */
   #edit-modal {
     display: none;
-    width: 600px;
+    width: 800px;
     max-width: 95vw;
+    height: 80vh;
     background: var(--bg2);
     border: 1px solid var(--border2);
     border-radius: var(--radius-lg);
@@ -1035,7 +1036,8 @@
     font-family: var(--font);
     line-height: 1.65;
     resize: none;
-    min-height: 200px;
+    min-height: 0;
+    flex: 1;
     position: relative;
     z-index: 1;
   }
@@ -6836,7 +6838,6 @@ document.getElementById('btn-restore-version').addEventListener('click', async (
 });
 /* ────────────────────────────────────────────────── */
 </script>
-
 
 </body>
 </html>
