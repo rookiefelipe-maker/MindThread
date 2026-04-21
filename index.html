@@ -1616,6 +1616,34 @@
   }
   .thread-fab:hover { opacity: 0.9; transform: scale(1.06); }
 
+  /* ── global new-note FAB ── */
+  #fab-new-note {
+    position: fixed;
+    bottom: 2rem;
+    right: calc(var(--right-w) + 2rem);
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--blue);
+    border: none;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(26,132,212,0.45);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.7);
+    transition: opacity 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1);
+    line-height: 1;
+  }
+  #fab-new-note.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+  }
+  #fab-new-note:hover { box-shadow: 0 6px 24px rgba(26,132,212,0.6); }
+
   /* ── wikilink autocomplete popup ── */
   .wikilink-popup {
     position: fixed;
@@ -2428,6 +2456,8 @@
   </div>
 </div>
 
+<button id="fab-new-note" title="New note">+</button>
+
 <script>
 const DB_NAME = 'zettel-db', STORE = 'notes';
 let db, activeNote = null, calYear, calMonth, activeDay = null, allNotes = [];
@@ -2648,12 +2678,12 @@ function buildCard(n, inThread = false) {
           </svg>
         </button>
         ${replyCount > 0 ? `
-        <button class="card-thread-badge btn-card-thread" title="View thread">
+        <span class="card-thread-badge" title="${replyCount} repl${replyCount !== 1 ? 'ies' : 'y'}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
           ${replyCount}
-        </button>` : ''}
+        </span>` : ''}
         ${linkCount > 0 ? `
         <span class="card-links-badge" title="${linkCount} wikilink${linkCount !== 1 ? 's' : ''}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2677,9 +2707,14 @@ function buildCard(n, inThread = false) {
     </div>
   `;
 
-  // click body → open view (not footer)
-  card.querySelector('.card-body').addEventListener('click', () => { viewFromThread = false; openView(n); });
-  card.querySelector('.card-header').addEventListener('click', () => { viewFromThread = false; openView(n); });
+  // click body/header → open thread if note has replies, otherwise open view
+  const _hasReplies = allNotes.some(r => r.parentId === n.id);
+  card.querySelector('.card-body').addEventListener('click', () => {
+    if (_hasReplies) { openThread(n); } else { viewFromThread = false; openView(n); }
+  });
+  card.querySelector('.card-header').addEventListener('click', () => {
+    if (_hasReplies) { openThread(n); } else { viewFromThread = false; openView(n); }
+  });
 
   // wire favicon imgs with cascade fallback: /favicon.ico → google service → hide
   const faviconWrap = card.querySelector('.card-favicons');
@@ -2706,14 +2741,7 @@ function buildCard(n, inThread = false) {
     openReply(n);
   });
 
-  // thread badge
-  const threadBtn = card.querySelector('.btn-card-thread');
-  if (threadBtn) {
-    threadBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      openThread(n);
-    });
-  }
+  // thread badge is now display-only — click on card opens thread
 
   // pin button
   card.querySelector('.btn-card-pin').addEventListener('click', e => {
@@ -4939,6 +4967,7 @@ window.addEventListener('resize', updatePinnedTop);
 // ── hide composer after scrolling past 3rd card ──────────────────────────────
 (function() {
   const wrap = document.getElementById('composer-wrap');
+  const fab  = document.getElementById('fab-new-note');
   let lastY = window.scrollY;
   let ticking = false;
 
@@ -4958,13 +4987,17 @@ window.addEventListener('resize', updatePinnedTop);
       const scrollingDown = y > lastY;
       if (scrollingDown && y > getThreshold()) {
         wrap.classList.add('composer-hidden');
-      } else if (!scrollingDown) {
+        fab.classList.add('visible');
+      } else if (y < 5) {
         wrap.classList.remove('composer-hidden');
+        fab.classList.remove('visible');
       }
       lastY = y;
       ticking = false;
     });
   }, { passive: true });
+
+  fab.addEventListener('click', () => openNewNote());
 })();
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -4974,5 +5007,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
 </body>
 </html>
