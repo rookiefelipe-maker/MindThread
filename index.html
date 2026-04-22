@@ -6586,10 +6586,13 @@ function updateRightSidebar() {
   document.getElementById('rs-total-threads').textContent = totalThreads;
   document.getElementById('rs-orphans').textContent       = orphans;
 
-  // recently edited — top 5 by createdAt (or updatedAt if present)
+  // recently edited — top 5 by most recent timestamp regardless of origin
   const recent = [...allNotes]
-    .filter(n => !n.parentId)
-    .sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt))
+    .sort((a, b) => {
+      const ta = a.updatedAt || a.importedAt || a.createdAt || 0;
+      const tb = b.updatedAt || b.importedAt || b.createdAt || 0;
+      return tb - ta;
+    })
     .slice(0, 5);
 
   const recentEl = document.getElementById('rs-recent');
