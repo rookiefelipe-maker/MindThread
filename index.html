@@ -4727,15 +4727,45 @@ saveBtn.addEventListener('click', async () => {
 });
 
 /* ── new note modal ── */
+const NEW_NOTE_DRAFT_KEY = 'mindthread_new_note_draft';
+
+function saveNewNoteDraft() {
+  const title = document.getElementById('new-note-title-input').value;
+  const body  = document.getElementById('new-note-body-input').value;
+  if (title || body) {
+    localStorage.setItem(NEW_NOTE_DRAFT_KEY, JSON.stringify({ title, body, type: newNoteType }));
+  } else {
+    localStorage.removeItem(NEW_NOTE_DRAFT_KEY);
+  }
+}
+
+function clearNewNoteDraft() {
+  localStorage.removeItem(NEW_NOTE_DRAFT_KEY);
+}
+
 function openNewNote() {
   document.getElementById('new-note-overlay').classList.add('open');
-  document.getElementById('new-note-title-input').value = '';
-  document.getElementById('new-note-body-input').value = '';
+
+  // Restore draft if one exists, otherwise start fresh
+  const raw = localStorage.getItem(NEW_NOTE_DRAFT_KEY);
+  const draft = raw ? (() => { try { return JSON.parse(raw); } catch(e) { return null; } })() : null;
+
+  if (draft && (draft.title || draft.body)) {
+    document.getElementById('new-note-title-input').value = draft.title || '';
+    document.getElementById('new-note-body-input').value  = draft.body  || '';
+    newNoteType = draft.type || 'lit';
+    showToast('Draft restored');
+  } else {
+    document.getElementById('new-note-title-input').value = '';
+    document.getElementById('new-note-body-input').value  = '';
+    newNoteType = 'lit';
+  }
+
   syncHighlight('new-note-body-input', 'hl-new-note');
   updateWc('new-note-body-input', 'wc-new-note');
-  newNoteType = 'lit';
+
   document.querySelectorAll('[data-group="new-note"].type-btn').forEach(b => {
-    const active = b.dataset.type === 'lit';
+    const active = b.dataset.type === newNoteType;
     b.style.background = active ? 'var(--blue-bg)' : 'transparent';
     b.style.color = active ? 'var(--blue)' : 'var(--text3)';
   });
@@ -4754,7 +4784,7 @@ function closeNewNote() {
 }
 
 document.getElementById('btn-close-new-note').addEventListener('click', closeNewNote);
-document.getElementById('btn-cancel-new-note').addEventListener('click', closeNewNote);
+document.getElementById('btn-cancel-new-note').addEventListener('click', () => { clearNewNoteDraft(); closeNewNote(); });
 document.getElementById('new-note-overlay').addEventListener('click', e => {
   if (focusMode) return; // in focus mode, only close via ✕ or Focus button
   if (e.target === document.getElementById('new-note-overlay')) closeNewNote();
@@ -4767,6 +4797,7 @@ document.getElementById('btn-save-new-note').addEventListener('click', async () 
   const note = { id: crypto.randomUUID(), title, body, type: newNoteType, createdAt: Date.now(), attachments: pendingAttachments['new-note'].slice() };
   await putNote(note);
   await writeNoteToVault(note);
+  clearNewNoteDraft();
   const wasFocusMode = focusMode;
   clearPendingAttachments('new-note');
   allNotes = await getAllNotes();
@@ -5996,6 +6027,7 @@ initTypeToggle('#edit-type-toggle',        t => { editNoteType = t; });
       btn.style.background = 'var(--blue-bg)';
       btn.style.color = 'var(--blue)';
       newNoteType = btn.dataset.type;
+      saveNewNoteDraft();
     });
   });
 })();
@@ -6394,6 +6426,23 @@ document.getElementById('reset-confirm-input').addEventListener('input', e => {
 
 document.getElementById('btn-reset-app').addEventListener('click', async () => {
   if (document.getElementById('reset-confirm-input').value !== 'RESET') return;
+
+  // auto-download backup before clearing
+  const notesToBackup = await getAllNotes();
+  const payload = {
+    version: 1,
+    app: 'MindThread',
+    exportedAt: Date.now(),
+    notes: notesToBackup
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+  a.href     = url;
+  a.download = `mindthread-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 
   // clear notes IndexedDB
   await clearAllNotes();
@@ -7125,7 +7174,8 @@ function updateWc(textareaId, wcId) {
   wc.classList.toggle('has-content', words > 0);
 }
 // new-note
-document.getElementById('new-note-body-input').addEventListener('input', () => updateWc('new-note-body-input', 'wc-new-note'));
+document.getElementById('new-note-body-input').addEventListener('input', () => { updateWc('new-note-body-input', 'wc-new-note'); saveNewNoteDraft(); });
+document.getElementById('new-note-title-input').addEventListener('input', saveNewNoteDraft);
 // edit modal — also update when opened
 document.getElementById('edit-body').addEventListener('input', () => updateWc('edit-body', 'wc-edit'));
 // reset new-note wc when modal is cleared
