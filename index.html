@@ -4883,7 +4883,19 @@ function renderFocusList(query) {
   });
 }
 
-function openFocusViewer(note) {
+let focusViewerStack = [];
+
+function openFocusViewer(note, pushToStack) {
+  if (pushToStack === undefined) pushToStack = false;
+  if (pushToStack) {
+    // push current note to stack before navigating
+    const currentTitle = document.getElementById('focus-viewer-note-title').textContent;
+    const currentNote = allNotes.find(n => (n.title || '') === currentTitle);
+    if (currentNote) focusViewerStack.push(currentNote);
+  } else {
+    // fresh open — reset stack
+    focusViewerStack = [];
+  }
   document.getElementById('focus-notes-list').classList.add('hidden');
   const viewer = document.getElementById('focus-note-viewer');
   viewer.classList.add('open');
@@ -4892,13 +4904,39 @@ function openFocusViewer(note) {
   document.getElementById('focus-viewer-note-date').textContent = formatFull(note.createdAt);
   const bodyEl = document.getElementById('focus-viewer-note-body');
   bodyEl.innerHTML = renderMarkdown(note.body || '');
-  attachWikilinkClickHandlers(bodyEl);
+  attachFocusViewerWikilinkHandlers(bodyEl);
+  // show/hide back button depending on whether there's history
+  const backBtn = document.getElementById('focus-back-btn');
+  backBtn.title = focusViewerStack.length > 0 ? 'Back' : 'Back to notes';
+}
+
+function attachFocusViewerWikilinkHandlers(container) {
+  container.querySelectorAll('.wikilink').forEach(el => {
+    el.addEventListener('click', () => {
+      const name = el.textContent.replace(/^\[\[|\]\]$/g, '').trim();
+      const target = allNotes.find(n => (n.title || '').toLowerCase() === name.toLowerCase());
+      if (target) openFocusViewer(target, true);
+      else showToast('Note not found');
+    });
+  });
 }
 
 function closeFocusViewer() {
+  if (focusViewerStack.length > 0) {
+    // go back in history instead of closing
+    const prev = focusViewerStack.pop();
+    document.getElementById('focus-viewer-title').textContent = prev.title || 'Untitled';
+    document.getElementById('focus-viewer-note-title').textContent = prev.title || 'Untitled';
+    document.getElementById('focus-viewer-note-date').textContent = formatFull(prev.createdAt);
+    const bodyEl = document.getElementById('focus-viewer-note-body');
+    bodyEl.innerHTML = renderMarkdown(prev.body || '');
+    attachFocusViewerWikilinkHandlers(bodyEl);
+    return;
+  }
   document.getElementById('focus-notes-list').classList.remove('hidden');
   document.getElementById('focus-note-viewer').classList.remove('open');
   document.getElementById('focus-viewer-title').textContent = '';
+  focusViewerStack = [];
 }
 
 function enterFocusMode() {
@@ -4912,12 +4950,16 @@ function enterFocusMode() {
 
 function exitFocusMode() {
   focusMode = false;
+  focusViewerStack = [];
   const overlay = document.getElementById('new-note-overlay');
   overlay.classList.remove('focus-mode');
   document.getElementById('btn-focus-mode').classList.remove('active');
   // Reset width so normal modal reopens at default size
   document.getElementById('new-note-box').style.width = '';
-  closeFocusViewer();
+  // Force close viewer fully (skip stack navigation)
+  document.getElementById('focus-notes-list').classList.remove('hidden');
+  document.getElementById('focus-note-viewer').classList.remove('open');
+  document.getElementById('focus-viewer-title').textContent = '';
   document.getElementById('focus-search-input').value = '';
   document.getElementById('focus-search-clear').style.display = 'none';
 }
@@ -5221,7 +5263,17 @@ function renderEditFocusList(query) {
   });
 }
 
-function openEditFocusViewer(note) {
+let editFocusViewerStack = [];
+
+function openEditFocusViewer(note, pushToStack) {
+  if (pushToStack === undefined) pushToStack = false;
+  if (pushToStack) {
+    const currentTitle = document.getElementById('edit-focus-viewer-note-title').textContent;
+    const currentNote = allNotes.find(n => (n.title || '') === currentTitle);
+    if (currentNote) editFocusViewerStack.push(currentNote);
+  } else {
+    editFocusViewerStack = [];
+  }
   document.getElementById('edit-focus-notes-list').style.display = 'none';
   const viewer = document.getElementById('edit-focus-note-viewer');
   viewer.style.display = 'flex';
@@ -5230,13 +5282,35 @@ function openEditFocusViewer(note) {
   document.getElementById('edit-focus-viewer-note-date').textContent = formatFull(note.createdAt);
   const bodyEl = document.getElementById('edit-focus-viewer-note-body');
   bodyEl.innerHTML = renderMarkdown(note.body || '');
-  attachWikilinkClickHandlers(bodyEl);
+  attachEditFocusViewerWikilinkHandlers(bodyEl);
+}
+
+function attachEditFocusViewerWikilinkHandlers(container) {
+  container.querySelectorAll('.wikilink').forEach(el => {
+    el.addEventListener('click', () => {
+      const name = el.textContent.replace(/^\[\[|\]\]$/g, '').trim();
+      const target = allNotes.find(n => (n.title || '').toLowerCase() === name.toLowerCase());
+      if (target) openEditFocusViewer(target, true);
+      else showToast('Note not found');
+    });
+  });
 }
 
 function closeEditFocusViewer() {
+  if (editFocusViewerStack.length > 0) {
+    const prev = editFocusViewerStack.pop();
+    document.getElementById('edit-focus-viewer-title').textContent = prev.title || 'Untitled';
+    document.getElementById('edit-focus-viewer-note-title').textContent = prev.title || 'Untitled';
+    document.getElementById('edit-focus-viewer-note-date').textContent = formatFull(prev.createdAt);
+    const bodyEl = document.getElementById('edit-focus-viewer-note-body');
+    bodyEl.innerHTML = renderMarkdown(prev.body || '');
+    attachEditFocusViewerWikilinkHandlers(bodyEl);
+    return;
+  }
   document.getElementById('edit-focus-notes-list').style.display = '';
   document.getElementById('edit-focus-note-viewer').style.display = 'none';
   document.getElementById('edit-focus-viewer-title').textContent = '';
+  editFocusViewerStack = [];
 }
 
 function enterEditFocusMode() {
@@ -5249,12 +5323,16 @@ function enterEditFocusMode() {
 
 function exitEditFocusMode() {
   editFocusMode = false;
+  editFocusViewerStack = [];
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('edit-focus-mode');
   document.getElementById('btn-edit-focus-mode').classList.remove('active');
   document.getElementById('edit-modal').style.width = '';
   overlay.style.removeProperty('--edit-focus-editor-w');
-  closeEditFocusViewer();
+  // Force close viewer fully (skip stack navigation)
+  document.getElementById('edit-focus-notes-list').style.display = '';
+  document.getElementById('edit-focus-note-viewer').style.display = 'none';
+  document.getElementById('edit-focus-viewer-title').textContent = '';
   document.getElementById('edit-focus-search-input').value = '';
   document.getElementById('edit-focus-search-clear').style.display = 'none';
 }
